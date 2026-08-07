@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "rustlingspots",
+  "version": "4.3",
+  "name": "Rustling Spots",
+  "description": "Rustling Spots adds configurable rustling encounters with loot and Pokemon rewards.",
+  "authors": [
+    "OurStory x LevelsFR"
+  ],
+  "license": "MPL-2.0",
+  "icon": "assets/rustlingspots/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.levelscraft7.rustlingspots.RustlingSpotsFabricMod"
+    ],
+    "client": [
+      "net.levelscraft7.rustlingspots.client.RustlingSpotsFabricClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "architectury": ">=13.0.8",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "format_version": 1,
+  "id": "rustlingspots:swamp_custom",
+  "display_name": "Swamp Spot",
+  "priority": 10,
+  "weight": 5,
+  "visual_family": "leaves",
+  "dimensions": [
+    "minecraft:overworld"
+  ],
+  "biomes": [
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "#minecraft:is_forest"
+  ],
+  "blocks": [
+    "minecraft:mud",
+    "minecraft:grass_block",
+    "#minecraft:dirt"
+  ],
+  "pokemon_family": "rustlingspots:swamp",
+  "loot_family": "rustlingspots:swamp",
+  "particles": [
+    {
+      "type": "rustlingspots:grass_burst",
+      "weight": 7
+    },
+    {
+      "type": "minecraft:happy_villager",
+      "weight": 3
+    }
+  ]
+}

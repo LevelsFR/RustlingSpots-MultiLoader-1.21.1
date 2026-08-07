@@ -1,0 +1,11 @@
+[
+  { "species": "wooper", "weight": 10, "min_level": 1, "max_level": 18 },
+  { "species": "paldean-wooper", "weight": 10, "min_level": 1, "max_level": 18 },
+  { "species": "lotad", "weight": 9, "min_level": 1, "max_level": 20 },
+  { "species": "surskit", "weight": 9, "min_level": 1, "max_level": 20 },
+  { "species": "croagunk", "weight": 8, "min_level": 8, "max_level": 24 },
+  { "species": "stunfisk", "weight": 6, "min_level": 12, "max_level": 28 },
+  { "species": "marshtomp", "weight": 3, "min_level": 18, "max_level": 36 },
+  { "species": "quagsire", "weight": 3, "min_level": 18, "max_level": 36 },
+  { "species": "swampert", "weight": 1, "min_level": 36, "max_level": 55 }
+]

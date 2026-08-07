@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "net.levelscraft7.rustlingspots.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"ExampleMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

@@ -1,0 +1,44 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+#issueTrackerURL = ""
+license = "MPL-2.0"
+
+[[mods]]
+modId = "rustlingspots"
+version = "${version}"
+displayName = "Rustling Spots"
+authors = "OurStory x LevelsFR"
+description = """Rustling Spots introduce dynamic points of activity across the world.
+When you explore, you may discover Rustling Spots that spawn themed particles and encounters.
+Each family of spots comes with its own curated Pokémon pools and item tables, fully customisable through configuration files.
+Designed to be lightweight, immersive and flexible, Rustling Spots enhances exploration and rewards curiosity."""
+
+logoFile = "assets/rustlingspots/icon.png"
+
+[[dependencies.rustlingspots]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.rustlingspots]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.rustlingspots]]
+modId = "architectury"
+type = "required"
+versionRange = "[13.0.8,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.rustlingspots]]
+modId = "cobblemon"
+type = "required"
+versionRange = "[1.7.1+1.21.1,)"
+ordering = "AFTER"
+side = "BOTH"

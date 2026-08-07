@@ -1,0 +1,9 @@
+{
+  "textures": [
+    "rustlingspots:rs_cloudfour",
+    "rustlingspots:rs_cloudthree",
+    "rustlingspots:rs_cloudtwo",
+    "rustlingspots:rs_cloudone",
+    "minecraft:cloud"
+  ]
+}

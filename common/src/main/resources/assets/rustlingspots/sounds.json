@@ -1,0 +1,8 @@
+{
+  "spot/pokemon_spawn": {
+    "sounds": [ { "name": "rustlingspots:rs_pokepop" } ]
+  },
+  "spot/item_reward": {
+    "sounds": [ { "name": "rustlingspots:rs_itemrec" } ]
+  }
+}

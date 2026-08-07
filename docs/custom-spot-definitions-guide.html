@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustling Spots - Guide des Custom Spot Definitions</title>
+    <style>
+        :root {
+            --bg: #f4efe6;
+            --paper: #fff9f0;
+            --paper-strong: #fffdf8;
+            --ink: #1f1a16;
+            --muted: #6a5d50;
+            --line: #ddcfbb;
+            --green: #2b6b46;
+            --green-soft: #dcebdc;
+            --green-strong: #18412b;
+            --brown: #8d5428;
+            --brown-soft: #f5e2cf;
+            --gold: #d6b25f;
+            --shadow: 0 18px 40px rgba(31, 26, 22, 0.08);
+            --radius: 24px;
+            --serif: "Georgia", "Palatino Linotype", "Book Antiqua", serif;
+            --mono: "Cascadia Code", "Consolas", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            font-family: var(--serif);
+            line-height: 1.65;
+            background:
+                radial-gradient(circle at top left, rgba(43, 107, 70, 0.16), transparent 28%),
+                radial-gradient(circle at top right, rgba(141, 84, 40, 0.12), transparent 22%),
+                linear-gradient(180deg, #f8f2e8 0%, #f2eadf 100%);
+        }
+
+        .page {
+            width: min(1180px, calc(100% - 32px));
+            margin: 28px auto 64px;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 36px 36px 30px;
+            border-radius: 30px;
+            color: #fbf7ef;
+            background:
+                linear-gradient(140deg, rgba(43, 107, 70, 0.96), rgba(24, 65, 43, 0.98)),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+            box-shadow: var(--shadow);
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            right: -40px;
+            bottom: -60px;
+            width: 260px;
+            height: 260px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 0.82rem;
+        }
+
+        h1, h2, h3 {
+            line-height: 1.12;
+            margin: 0;
+        }
+
+        h1 {
+            margin-top: 14px;
+            font-size: clamp(2.4rem, 5vw, 4.4rem);
+            max-width: 12ch;
+        }
+
+        .hero p {
+            max-width: 78ch;
+            margin: 16px 0 0;
+            color: rgba(251, 247, 239, 0.94);
+            font-size: 1.05rem;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .hero-card {
+            position: relative;
+            z-index: 1;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .hero-card strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.92rem;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+            margin-top: 28px;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 20px;
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            background: rgba(255, 249, 240, 0.88);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar h2 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 8px 0;
+            color: var(--green-strong);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(221, 207, 187, 0.6);
+            font-size: 0.96rem;
+        }
+
+        .sidebar a:last-child {
+            border-bottom: 0;
+        }
+
+        .content {
+            display: grid;
+            gap: 18px;
+        }
+
+        .panel {
+            padding: 28px;
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, var(--paper-strong), var(--paper));
+            box-shadow: var(--shadow);
+        }
+
+        .panel h2 {
+            font-size: 1.72rem;
+            margin-bottom: 12px;
+        }
+
+        .panel h3 {
+            margin: 22px 0 10px;
+            font-size: 1.16rem;
+        }
+
+        .panel p {
+            margin: 0 0 12px;
+        }
+
+        .panel ul,
+        .panel ol {
+            margin: 0 0 16px 20px;
+            padding: 0;
+        }
+
+        .callout {
+            margin: 16px 0;
+            padding: 16px 18px;
+            border-radius: 18px;
+        }
+
+        .callout.info {
+            background: var(--green-soft);
+            border: 1px solid rgba(43, 107, 70, 0.18);
+        }
+
+        .callout.warn {
+            background: var(--brown-soft);
+            border: 1px solid rgba(141, 84, 40, 0.22);
+        }
+
+        code,
+        pre {
+            font-family: var(--mono);
+        }
+
+        code {
+            padding: 0.16em 0.36em;
+            border-radius: 7px;
+            color: var(--green-strong);
+            background: rgba(24, 65, 43, 0.08);
+            font-size: 0.94em;
+        }
+
+        pre {
+            margin: 14px 0 18px;
+            padding: 16px 18px;
+            overflow: auto;
+            border-radius: 18px;
+            background: #201b18;
+            color: #f4efe7;
+            border: 1px solid #413731;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 20px;
+            font-size: 0.97rem;
+        }
+
+        th,
+        td {
+            padding: 12px 14px;
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid var(--line);
+        }
+
+        th {
+            font-size: 0.89rem;
+            color: var(--green-strong);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.92rem;
+            color: var(--green-strong);
+            background: rgba(43, 107, 70, 0.09);
+            border: 1px solid rgba(43, 107, 70, 0.18);
+        }
+
+        .steps {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr);
+            gap: 14px;
+            align-items: start;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(43, 107, 70, 0.05);
+            border: 1px solid rgba(43, 107, 70, 0.12);
+        }
+
+        .step-index {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            color: #fff;
+            font-weight: bold;
+            background: var(--green);
+        }
+
+        .footer {
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .accent {
+            color: var(--brown);
+            font-weight: bold;
+        }
+
+        @media (max-width: 940px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page {
+                width: min(100% - 18px, 100%);
+                margin: 10px auto 38px;
+            }
+
+            .hero,
+            .panel,
+            .sidebar {
+                padding: 20px;
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <section class="hero">
+        <span class="eyebrow">Rustling Spots 1.21.1</span>
+        <h1>Custom Spot Definitions</h1>
+        <p>
+            Cette page explique le nouveau systeme de Rustling Spots base sur les datapacks.
+            Le but est simple : permettre aux joueurs, serveurs et modpacks de creer leurs propres
+            rustling spots via quelques fichiers JSON, sans textures custom, sans modeles,
+            sans API addon et sans systeme de scripts.
+        </p>
+        <div class="hero-grid">
+            <div class="hero-card">
+                <strong>Ce que vous personnalisez</strong>
+                Les biomes, les blocs, la priorite, le poids, la famille Pokemon, la famille de loot et les particules.
+            </div>
+            <div class="hero-card">
+                <strong>Ce qui reste partage</strong>
+                Le rendu, l'animation, le timing, le comportement et la famille visuelle choisie via <code>visual_family</code>.
+            </div>
+            <div class="hero-card">
+                <strong>Datapack d'exemple inclus</strong>
+                Le pack <code>custom_swamp_spot_pack</code> montre deja un cas complet et fonctionnel.
+            </div>
+        </div>
+    </section>
+
+    <div class="layout">
+        <nav class="sidebar">
+            <h2>Sommaire</h2>
+            <a href="#status">Etat du datapack exemple</a>
+            <a href="#overview">Vue d'ensemble</a>
+            <a href="#structure">Structure du datapack</a>
+            <a href="#spot-file">Fichier du spot</a>
+            <a href="#pokemon-file">Fichier Pokemon</a>
+            <a href="#loot-file">Fichier loot</a>
+            <a href="#rules">Regles de fonctionnement</a>
+            <a href="#commands">Commandes et reload</a>
+            <a href="#workflow">Comment creer son propre spot</a>
+            <a href="#publish">Conseils avant publication</a>
+        </nav>
+
+        <main class="content">
+            <section class="panel" id="status">
+                <h2>Etat du Datapack Exemple</h2>
+                <p>
+                    Oui, le datapack exemple est pret et complet pour les tests, la comprehension du systeme
+                    et comme base a dupliquer pour vos propres packs.
+                </p>
+                <div class="callout info">
+                    Le pack inclut deja un custom spot complet, une famille Pokemon custom,
+                    une famille de loot custom, un nom lisible pour le chat et un fichier README d'installation.
+                </div>
+                <pre>example_datapacks/custom_swamp_spot_pack/
+|- pack.mcmeta
+|- README.txt
+`- data/
+   `- rustlingspots/
+      `- rustling_spots/
+         |- spot_definitions/
+         |  `- swamp.json
+         |- pokemon_families/
+         |  `- swamp.json
+         `- loot_families/
+            `- swamp.json</pre>
+                <p>
+                    Une fois copie dans <code>world/datapacks/</code>, il suffit de lancer
+                    <code>/reload</code> puis de tester avec
+                    <code>/rustlingspots spawn rustlingspots:swamp_custom</code>.
+                </p>
+            </section>
+
+            <section class="panel" id="overview">
+                <h2>Vue d'Ensemble</h2>
+                <p>
+                    Un custom rustling spot n'est pas un nouveau type visuel complet.
+                    C'est une definition de spawn qui reutilise le comportement standard de Rustling Spots.
+                </p>
+                <ul>
+                    <li>Le rendu utilise la famille definie par <code>visual_family</code>, ou le fallback historique grass.</li>
+                    <li>L'animation reste la meme.</li>
+                    <li>Le timing reste le meme.</li>
+                    <li>La logique de spawn s'integre directement au systeme normal du mod.</li>
+                    <li>La selection se fait avec priorite puis poids.</li>
+                    <li>Le spot peut etre invoque avec une commande.</li>
+                    <li>Le tout est rechargeable avec <code>/reload</code> et <code>/rustlingspots reload</code>.</li>
+                </ul>
+                <div class="pill-row">
+                    <span class="pill">Leger</span>
+                    <span class="pill">Datapack only</span>
+                    <span class="pill">Fabric + NeoForge</span>
+                    <span class="pill">Singleplayer + dedicated server</span>
+                </div>
+            </section>
+
+            <section class="panel" id="structure">
+                <h2>Structure du Datapack</h2>
+                <p>
+                    Le systeme repose sur trois groupes de fichiers.
+                    Chaque groupe a un dossier bien precis dans le datapack.
+                </p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Emplacement</th>
+                        <th>Role</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Spot definitions</td>
+                        <td><code>data/&lt;namespace&gt;/rustling_spots/spot_definitions/*.json</code></td>
+                        <td>Definit les spots eux-memes.</td>
+                    </tr>
+                    <tr>
+                        <td>Pokemon families</td>
+                        <td><code>data/&lt;namespace&gt;/rustling_spots/pokemon_families/*.json</code></td>
+                        <td>Definit les pools Pokemon reutilisables.</td>
+                    </tr>
+                    <tr>
+                        <td>Loot families</td>
+                        <td><code>data/&lt;namespace&gt;/rustling_spots/loot_families/*.json</code></td>
+                        <td>Definit les pools de loot reutilisables.</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <h3>Namespace</h3>
+                <p>
+                    Le namespace est la premiere partie de l'identifiant, avant les deux-points.
+                    Par exemple, dans <code>rustlingspots:swamp_custom</code>, le namespace est
+                    <code>rustlingspots</code> et le nom est <code>swamp_custom</code>.
+                </p>
+                <p>
+                    Vous pouvez utiliser votre propre namespace comme <code>mymodpack</code> ou
+                    <code>myaddon</code>, mais l'exemple fourni utilise directement <code>rustlingspots</code>
+                    pour rester plus parlant.
+                </p>
+            </section>
+
+            <section class="panel" id="spot-file">
+                <h2>Fichier du Spot</h2>
+                <p>
+                    Chaque custom spot est defini dans un fichier JSON situe dans
+                    <code>spot_definitions</code>.
+                </p>
+
+                <h3>Exemple Complet</h3>
+                <pre>{
+  "format_version": 1,
+  "id": "rustlingspots:swamp_custom",
+  "display_name": "Swamp Spot",
+  "priority": 10,
+  "weight": 5,
+  "visual_family": "leaves",
+  "dimensions": [
+    "minecraft:overworld"
+  ],
+  "biomes": [
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "#minecraft:is_forest"
+  ],
+  "blocks": [
+    "minecraft:mud",
+    "minecraft:grass_block",
+    "#minecraft:dirt"
+  ],
+  "pokemon_family": "rustlingspots:swamp",
+  "loot_family": "rustlingspots:swamp",
+  "particles": [
+    {
+      "type": "rustlingspots:grass_burst",
+      "weight": 7
+    },
+    {
+      "type": "minecraft:happy_villager",
+      "weight": 3
+    }
+  ]
+}</pre>
+
+                <h3>Champs Disponibles</h3>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Champ</th>
+                        <th>Obligatoire</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><code>format_version</code></td>
+                        <td>Oui</td>
+                        <td>Version du format. Actuellement : <code>1</code>.</td>
+                    </tr>
+                    <tr>
+                        <td><code>id</code></td>
+                        <td>Oui</td>
+                        <td>Identifiant complet du spot, comme <code>rustlingspots:swamp_custom</code>.</td>
+                    </tr>
+                    <tr>
+                        <td><code>display_name</code></td>
+                        <td>Non</td>
+                        <td>Nom lisible affiche dans le chat et les messages. Si absent, l'id brut est utilise.</td>
+                    </tr>
+                    <tr>
+                        <td><code>priority</code></td>
+                        <td>Oui</td>
+                        <td>Priorite du spot quand plusieurs definitions correspondent au meme emplacement.</td>
+                    </tr>
+                    <tr>
+                        <td><code>weight</code></td>
+                        <td>Oui</td>
+                        <td>Poids utilise apres le filtrage par priorite.</td>
+                    </tr>
+                    <tr>
+                        <td><code>dimensions</code></td>
+                        <td>Non</td>
+                        <td>Liste des dimensions autorisees. Si absent, le spot est limite a l'Overworld.</td>
+                    </tr>
+                    <tr>
+                        <td><code>biomes</code></td>
+                        <td>Oui</td>
+                        <td>Liste de biomes ou tags de biome autorises.</td>
+                    </tr>
+                    <tr>
+                        <td><code>blocks</code></td>
+                        <td>Oui</td>
+                        <td>Liste de blocs ou tags de blocs autorises sous le spot.</td>
+                    </tr>
+                    <tr>
+                        <td><code>pokemon_family</code></td>
+                        <td>Oui</td>
+                        <td>Famille Pokemon utilisee par le spot. Peut etre built-in ou definie dans le datapack.</td>
+                    </tr>
+                    <tr>
+                        <td><code>loot_family</code></td>
+                        <td>Oui</td>
+                        <td>Famille de loot utilisee par le spot. Peut etre built-in ou definie dans le datapack.</td>
+                    </tr>
+                    <tr>
+                        <td><code>particles</code></td>
+                        <td>Oui</td>
+                        <td>Liste de particules ponderees. Seuls <code>type</code> et <code>weight</code> sont supportes.</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <h3>Biomes et Blocs</h3>
+                <p>
+                    Les listes <code>biomes</code> et <code>blocks</code> supportent deux formes :
+                </p>
+                <ul>
+                    <li>un identifiant direct, comme <code>minecraft:swamp</code> ou <code>minecraft:mud</code></li>
+                    <li>un tag, comme <code>#minecraft:is_forest</code> ou <code>#minecraft:dirt</code></li>
+                </ul>
+
+                <h3>Particules</h3>
+                <p>
+                    Le systeme de particules reste volontairement minimaliste.
+                    Chaque entree contient uniquement un type et un poids.
+                </p>
+                <pre>"particles": [
+  { "type": "rustlingspots:grass_burst", "weight": 7 },
+  { "type": "minecraft:happy_villager", "weight": 3 }
+]</pre>
+                <ul>
+                    <li>Pas de vitesse.</li>
+                    <li>Pas d'offset.</li>
+                    <li>Pas de controle avance.</li>
+                    <li>Les particules invalides retombent sur les particules de fallback de la famille visuelle.</li>
+                </ul>
+
+                <div class="callout warn">
+                    Un custom spot ne cree pas un nouveau systeme de rendu complet.
+                    Utilisez <code>visual_family</code> et les particules pour adapter son identite visuelle.
+                </div>
+            </section>
+
+            <section class="panel" id="pokemon-file">
+                <h2>Fichier Pokemon</h2>
+                <p>
+                    Les Pokemon ne se definissent pas directement dans le spot.
+                    Le spot pointe vers une famille Pokemon, et cette famille contient les entrees du pool.
+                </p>
+
+                <h3>Emplacement</h3>
+                <pre>data/&lt;namespace&gt;/rustling_spots/pokemon_families/&lt;nom&gt;.json</pre>
+
+                <h3>Exemple</h3>
+                <pre>[
+  { "species": "wooper", "weight": 10, "min_level": 1, "max_level": 18 },
+  { "species": "paldean-wooper", "weight": 10, "min_level": 1, "max_level": 18 },
+  { "species": "lotad", "weight": 9, "min_level": 1, "max_level": 20 },
+  { "species": "surskit", "weight": 9, "min_level": 1, "max_level": 20 },
+  { "species": "croagunk", "weight": 8, "min_level": 8, "max_level": 24 },
+  { "species": "stunfisk", "weight": 6, "min_level": 12, "max_level": 28 },
+  { "species": "marshtomp", "weight": 3, "min_level": 18, "max_level": 36 },
+  { "species": "quagsire", "weight": 3, "min_level": 18, "max_level": 36 },
+  { "species": "swampert", "weight": 1, "min_level": 36, "max_level": 55 }
+]</pre>
+
+                <h3>Champs Utiles</h3>
+                <ul>
+                    <li><code>species</code> : l'espece Cobblemon.</li>
+                    <li><code>weight</code> : le poids de selection.</li>
+                    <li><code>min_level</code> : niveau minimum possible.</li>
+                    <li><code>max_level</code> : niveau maximum possible.</li>
+                    <li><code>shiny</code> : optionnel, pour forcer une entree shiny.</li>
+                    <li><code>shinyChance</code> : optionnel, pour definir une chance shiny propre a cette entree.</li>
+                </ul>
+
+                <h3>Liaison Avec le Spot</h3>
+                <p>
+                    Si le fichier est ici :
+                </p>
+                <pre>data/rustlingspots/rustling_spots/pokemon_families/swamp.json</pre>
+                <p>
+                    alors l'identifiant de famille est :
+                </p>
+                <pre>"pokemon_family": "rustlingspots:swamp"</pre>
+            </section>
+
+            <section class="panel" id="loot-file">
+                <h2>Fichier Loot</h2>
+                <p>
+                    Le systeme de loot suit exactement la meme logique :
+                    le spot ne contient pas les items lui-meme, il reference une famille de loot.
+                </p>
+
+                <h3>Emplacement</h3>
+                <pre>data/&lt;namespace&gt;/rustling_spots/loot_families/&lt;nom&gt;.json</pre>
+
+                <h3>Exemple</h3>
+                <pre>[
+  { "item": "minecraft:slime_ball", "min": 1, "max": 3, "weight": 5 },
+  { "item": "minecraft:vine", "min": 1, "max": 3, "weight": 4 },
+  { "item": "minecraft:lily_pad", "min": 1, "max": 2, "weight": 3 },
+  { "item": "minecraft:mud", "min": 2, "max": 5, "weight": 4 },
+  { "item": "minecraft:mangrove_propagule", "min": 1, "max": 2, "weight": 2 },
+  { "item": "cobblemon:pecha_berry", "min": 1, "max": 2, "weight": 3 },
+  { "item": "cobblemon:net_ball", "min": 1, "max": 1, "weight": 2 },
+  { "item": "cobblemon:great_ball", "min": 1, "max": 1, "weight": 2 }
+]</pre>
+
+                <h3>Champs Utiles</h3>
+                <ul>
+                    <li><code>item</code> : l'identifiant de l'item.</li>
+                    <li><code>min</code> : quantite minimum.</li>
+                    <li><code>max</code> : quantite maximum.</li>
+                    <li><code>weight</code> : poids de selection.</li>
+                </ul>
+
+                <h3>Liaison Avec le Spot</h3>
+                <pre>"loot_family": "rustlingspots:swamp"</pre>
+
+                <div class="callout warn">
+                    Si une famille de loot est inconnue, le jeu ne crash pas.
+                    Le spot retombe sur le global loot a la place.
+                </div>
+            </section>
+
+            <section class="panel" id="rules">
+                <h2>Regles de Fonctionnement</h2>
+                <h3>Selection de Spawn</h3>
+                <ol>
+                    <li>Le systeme rassemble toutes les definitions valides pour la position.</li>
+                    <li>Il garde uniquement celles qui ont la plus haute priorite.</li>
+                    <li>Il choisit ensuite la definition finale selon le poids.</li>
+                </ol>
+
+                <h3>Validation et securite</h3>
+                <ul>
+                    <li>Le serveur ne doit jamais crasher a cause d'un mauvais datapack.</li>
+                    <li>Un <code>pokemon_family</code> inconnu desactive la definition du spot.</li>
+                    <li>Un <code>loot_family</code> inconnu retombe sur le global loot.</li>
+                    <li>Des particules invalides retombent sur les particules de fallback de la famille visuelle.</li>
+                    <li>Si <code>dimensions</code> est absent, le spot est considere Overworld only.</li>
+                </ul>
+
+                <h3>Ids reserves</h3>
+                <p>
+                    Les ids internes du mod ne peuvent pas etre ecrases par datapack.
+                    Par exemple, ceci est refuse :
+                </p>
+                <pre>"id": "rustlingspots:grass"</pre>
+
+                <p>
+                    Les ids internes reserves sont :
+                </p>
+                <pre>rustlingspots:grass
+rustlingspots:sand
+rustlingspots:water
+rustlingspots:snow
+rustlingspots:leaves
+rustlingspots:cave
+rustlingspots:netherflamme
+rustlingspots:soulflame
+rustlingspots:flying</pre>
+            </section>
+
+            <section class="panel" id="commands">
+                <h2>Commandes et Reload</h2>
+                <ul>
+                    <li><code>/rustlingspots spawn rustlingspots:swamp_custom</code> : spawn du spot custom.</li>
+                    <li><code>/rustlingspots spawnshiny rustlingspots:swamp_custom</code> : spawn d'une version shiny.</li>
+                    <li><code>/rustlingspots scan 64</code> : scan des spots actifs autour du joueur.</li>
+                    <li><code>/reload</code> : recharge les datapacks et les custom spot definitions.</li>
+                    <li><code>/rustlingspots reload</code> : recharge les fichiers Rustling Spots et rafraichit aussi les donnees datapack.</li>
+                </ul>
+
+                <div class="callout info">
+                    En pratique, si vous modifiez un JSON du datapack pendant les tests,
+                    vous pouvez simplement faire <code>/reload</code> puis retester.
+                </div>
+            </section>
+
+            <section class="panel" id="workflow">
+                <h2>Comment Creer Son Propre Spot</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-index">1</div>
+                        <div>Dupliquez le dossier <code>custom_swamp_spot_pack</code> pour partir d'une base fonctionnelle.</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-index">2</div>
+                        <div>Renommez le spot dans <code>spot_definitions</code> avec un nouvel <code>id</code> et un <code>display_name</code> lisible.</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-index">3</div>
+                        <div>Adaptez les listes <code>biomes</code>, <code>blocks</code>, <code>priority</code>, <code>weight</code> et <code>particles</code>.</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-index">4</div>
+                        <div>Editez votre famille Pokemon pour choisir les especes, les poids et les niveaux.</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-index">5</div>
+                        <div>Editez votre famille de loot pour choisir les items, quantites et poids.</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-index">6</div>
+                        <div>Installez le datapack dans <code>world/datapacks/</code>, faites <code>/reload</code>, puis testez avec la commande de spawn.</div>
+                    </div>
+                </div>
+
+                <h3>Exemples de noms propres</h3>
+                <ul>
+                    <li><code>mymodpack:swamp_custom</code></li>
+                    <li><code>myaddon:haunted_forest</code></li>
+                    <li><code>rustlingspots:swamp_custom</code></li>
+                </ul>
+
+                <h3>A eviter</h3>
+                <ul>
+                    <li>Reprendre un id interne comme <code>rustlingspots:grass</code></li>
+                    <li>Mettre des poids a zero ou negatifs</li>
+                    <li>Oublier les champs obligatoires</li>
+                    <li>Definir directement Pokemon et loot dans le fichier du spot</li>
+                </ul>
+            </section>
+
+            <section class="panel" id="publish">
+                <h2>Conseils Avant Publication</h2>
+                <p>
+                    Avant de partager votre datapack a des joueurs ou de l'integrer a un modpack,
+                    il est recommande de verifier les points suivants.
+                </p>
+                <ul>
+                    <li>La commande de spawn fonctionne avec l'id complet du spot.</li>
+                    <li>Le chat affiche bien le <code>display_name</code> et non un id peu lisible.</li>
+                    <li>Les recompenses viennent bien de la famille custom attendue.</li>
+                    <li>Les Pokemon viennent bien de la famille custom attendue.</li>
+                    <li>Le spot apparait naturellement dans les bons biomes et sur les bons blocs.</li>
+                    <li>Un <code>/reload</code> reprend correctement les modifications du datapack.</li>
+                    <li>Un JSON invalide produit un warning sans faire crasher la partie ou le serveur.</li>
+                </ul>
+
+                <h3>Resume pratique pour les joueurs</h3>
+                <p class="footer">
+                    Copiez le dossier du datapack dans <code>world/datapacks/</code>, lancez le monde,
+                    faites <code>/reload</code>, puis testez avec
+                    <code>/rustlingspots spawn rustlingspots:swamp_custom</code>.
+                </p>
+                <p class="footer">
+                    Le datapack exemple fourni est deja une bonne base pour creer des variantes de swamp,
+                    forest, desert, cave ou tout autre biome personnalise, tout en restant dans un systeme leger,
+                    lisible et simple a partager.
+                </p>
+                <p class="footer">
+                    <span class="accent">En bref :</span> le pack d'exemple est pret,
+                    il montre le format complet supporte aujourd'hui, et cette page peut servir de presentation publique
+                    ou de documentation pour les joueurs.
+                </p>
+            </section>
+        </main>
+    </div>
+</div>
+</body>
+</html>
+
