@@ -1,125 +1,136 @@
----
-## Presentation
+# Rustling Spots Wiki
 
-**Rustling Spots** est un mod pour *Cobblemon* inspire du systeme d'herbes fremissantes de **Pokemon Noir & Blanc**.
-Il ajoute des evenements temporaires dynamiques apparaissant autour des joueurs, accompagnes de particules.
-
-Interagir avec un spot declenche une rencontre Cobblemon ou l'obtention d'un loot thematique selon sa famille.
-Le mod ne modifie pas la generation du monde, ce qui le rend sur pour les sauvegardes existantes.
+> **Documentation target:** Rustling Spots **v4.3** for Minecraft **1.21.1**.
+>
+> Français: [rustling-spots-wiki-fr.md](./rustling-spots-wiki-fr.md)
 
 ---
-## Fonctionnalites principales
 
-### Evenements dynamiques
+## Overview
 
-- Apparition temporaire de spots autour des joueurs pendant l'exploration
-- Indices visuels pour signaler leur presence
-- Rencontres exclusivement Cobblemon, sans mobs vanilla lies au systeme
-- Recompenses thematiques selon la famille du spot
-- Fonctionnement compatible avec les mondes deja existants
+**Rustling Spots** is a Cobblemon exploration mod inspired by the rustling grass system from **Pokémon Black & White**.
 
-### Familles de spots
+It adds temporary dynamic spots around players while they explore. Spots are represented directly in the world with visual effects and can trigger a **Cobblemon encounter**, **themed loot**, a **shiny reward**, or an optional **empty result** depending on configuration.
 
-Le mod propose **neuf familles** distinctes, chacune avec son identite visuelle, ses particules, ses regles de surface et ses pools de Pokemon / loot configurables.
+Rustling Spots does **not** modify world generation, making it safe to add to existing worlds.
 
-| Famille | Surface par defaut | Thematique |
+---
+
+## Main Features
+
+### Dynamic exploration events
+
+- Temporary spots appear around players during exploration
+- Visual particles help players notice nearby spots
+- Pokémon encounters use Cobblemon
+- Loot can be themed by spot family
+- Spots are temporary and disappear after interaction or lifecycle cleanup
+- Existing worlds do not need to be regenerated
+
+### Built-in spot families
+
+Rustling Spots includes **9 built-in families**. Each family has its own visual identity, surface rules, particles, Pokémon pools and loot pools.
+
+| Family | Typical default surface | Theme |
 | --- | --- | --- |
-| **Grass** | `grass_block`, `dirt_path`, petites fleurs | Rencontres classiques d'exterieur |
-| **Sand** | `sand`, `red_sand` | Especes desertiques, fossiles, loot sec |
-| **Water** | Eau source avec air au-dessus | Pokemon aquatiques et objets lies a l'eau |
-| **Snow** | `snow`, `snow_block`, `powder_snow` | Especes glaciales et recompenses hivernales |
-| **Leaves** | Blocs tagges `#leaves` | Rencontres forestieres et spots legers |
-| **Cave** | Pierre / deepslate avec air en grotte | Exploration souterraine, loot minier |
-| **Flying** | Zone aerienne ouverte sous le ciel | Rencontres aeriennes et ambiance de hauteur |
-| **NetherFlamme** | `netherrack` ou lave source | Chaleur, feu, ambiance du Nether |
-| **SoulFlame** | `soul_sand`, `soul_soil` | Ambiance sombre, maudite, spirituelle |
+| **Grass** | `grass_block`, `dirt_path`, small flowers | General outdoor encounters |
+| **Sand** | `sand`, `red_sand` | Desert species, fossils and dry loot |
+| **Water** | Source water with open space above | Aquatic Pokémon and water rewards |
+| **Snow** | `snow`, `snow_block`, `powder_snow` | Ice-themed encounters and rewards |
+| **Leaves** | Blocks tagged `#leaves` | Forest encounters and lightweight spots |
+| **Cave** | Stone or deepslate cave surfaces | Underground encounters and mining loot |
+| **Flying** | Open air beneath the sky | Flying encounters and high-altitude themes |
+| **NetherFlamme** | `netherrack` or source lava | Fire and Nether-themed rewards |
+| **SoulFlame** | `soul_sand`, `soul_soil` | Dark, spectral and soul-themed encounters |
 
-> Chaque famille peut etre activee, desactivee ou reequilibree via configuration.
-
----
-## Objectif du mod
-
-- Introduire une boucle d'exploration inspiree de la Generation 5 (*Pokemon Noir & Blanc*)
-- Ajouter des evenements interactifs visibles directement dans le monde
-- Encourager le deplacement et l'observation active plutot qu'un simple spawn passif
-- Donner plus de personnalite aux environnements via des rencontres et recompenses contextualisees
+Each family can be enabled, disabled or rebalanced through configuration.
 
 ---
-## Fonctionnement en jeu
 
-Lorsqu'un joueur explore le monde :
+## Gameplay Flow
 
-1. Un Rustling Spot peut apparaitre a proximite quand le joueur progresse dans de nouveaux chunks.
-2. Des particules signalent sa presence.
-3. Le joueur s'approche et interagit avec le spot.
-4. Le spot declenche une rencontre Cobblemon, un loot, ou parfois aucun resultat selon la configuration.
-5. Le spot disparait ensuite automatiquement.
+A typical interaction works like this:
 
-Le systeme respecte aussi un cycle de vie simple :
+1. A Rustling Spot appears near a player during exploration.
+2. Particles indicate the spot position.
+3. The player approaches and interacts with it.
+4. The spot resolves into a Cobblemon encounter, themed loot, an empty result, or another configured reward outcome.
+5. The spot is consumed and removed.
 
-- les spots ont une duree de vie limitee
-- ils disparaissent apres interaction
-- ils disparaissent aussi s'il n'y a plus de joueur a proximite
-- ils respectent des limites par joueur et globales pour eviter l'encombrement du serveur
-- depuis la v4.3, les spots actifs sont resynchronises apres connexion, respawn ou changement de dimension
+The lifecycle also includes server-side limits and cleanup:
 
-### Valeurs par defaut importantes
+- spots have a limited lifetime
+- spots disappear after interaction
+- inactive spots can be removed when players are no longer nearby
+- per-player and global limits prevent uncontrolled accumulation
+- since v4.3, active spots are resynchronized after login, respawn and dimension changes
 
-| Parametre | Valeur par defaut |
+### Important default values
+
+| Setting | Default |
 | --- | --- |
-| Rayon de presence autour du joueur | `200` blocs |
-| Distance minimale entre deux spots | `16` blocs |
-| Nombre maximum de spots par joueur | `8` |
-| Nombre maximum de spots sur le serveur | `64` |
-| Duree de vie d'un spot | `6000` ticks (~5 minutes) |
-| Rayon d'interaction | `2` blocs |
-| Tolerance verticale d'interaction | `3` blocs |
+| Player spot radius | `200` blocks |
+| Minimum distance between spots | `16` blocks |
+| Maximum spots per player | `8` |
+| Maximum spots on the server | `64` |
+| Spot lifetime | `6000` ticks, about 5 minutes |
+| Interaction radius | `2` blocks |
+| Vertical interaction allowance | `3` blocks |
 
 ---
-## Variantes et recompenses
 
-Le systeme ne se limite pas a un simple spawn Pokemon.
+## Rewards and Variants
 
-### Types de resultats possibles
+A spot is not limited to a simple Pokémon spawn.
 
-- **Rencontre Cobblemon**
-- **Loot thematique**
-- **Spot vide** si cette option est activee
-- **Spot shiny** avec annonce globale possible
+### Possible outcomes
 
-### Reglages par defaut
+- **Cobblemon encounter**
+- **Themed loot**
+- **Empty spot** when enabled
+- **Shiny spot** with optional global announcement
 
-| Option | Valeur par defaut |
+### Important reward defaults
+
+| Option | Default |
 | --- | --- |
-| Chance qu'un spot soit shiny | `0.0025` (0.25%) |
-| Annonce globale des trouvailles shiny | `true` |
-| Spots vides actives | `true` |
-| Chance d'un spot vide | `0.02` (2%) |
-| Chance de rencontre Pokemon | `0.35` (35%) |
-| Niveau Pokemon min / max | `5` a `75` |
-| Chance shiny Pokemon par defaut | `0.05` (5%) |
-| Recompenses multiples | desactivees par defaut |
+| Shiny spot chance | `0.0025` or 0.25% |
+| Global shiny discovery announcement | `true` |
+| Empty spots enabled | `true` |
+| Empty spot chance | `0.02` or 2% |
+| Pokémon encounter chance | `0.35` or 35% |
+| Pokémon minimum level | `5` |
+| Pokémon maximum level | `75` |
+| Default Pokémon shiny chance | `0.05` or 5% |
+| Multiple reward rolls | disabled by default |
 
-Un spot shiny garantit un resultat shiny cote recompense, et peut en plus annoncer la decouverte a tout le serveur si l'option est laissee active.
+A shiny spot forces a shiny reward outcome where supported and can announce the discovery to the server when global announcements are enabled.
 
 ---
+
 ## Configuration
 
-Le mod expose plusieurs fichiers JSON pour ajuster precisement son comportement :
+Rustling Spots stores its main JSON configuration under:
 
-| Fichier | Role |
+```text
+config/rustlingspots/
+```
+
+| File | Purpose |
 | --- | --- |
-| `config/rustlingspots/rustlingspots-server.json` | Activation globale, rayon, duree de vie, limites, shiny, spots vides, recompenses multiples |
-| `config/rustlingspots/rustlingspots-pokemon.json` | Chances de rencontre, niveaux, regles de spawn Pokemon |
-| `config/rustlingspots/rustlingspots-client.json` | Ombres, preferences d'affichage des messages cote client |
-| `config/rustlingspots/rustlingspots-sound.json` | Volumes des sons de recompense |
-| `config/rustlingspots/rustlingspots-families.json` | Taux d'apparition par famille |
+| `rustlingspots-server.json` | Global activation, radius, lifetime, limits, shiny settings, empty spots and reward behavior |
+| `rustlingspots-pokemon.json` | Pokémon encounter chance, levels and spawn rules |
+| `rustlingspots-client.json` | Client display options and message preferences |
+| `rustlingspots-sound.json` | Reward sound volumes |
+| `rustlingspots-families.json` | Spawn multipliers for built-in families |
 
-Depuis la v4.3, un fichier JSON invalide est sauvegarde avec un suffixe `.invalid.bak` avant que les valeurs par defaut soient regenerees.
+### Safer config recovery in v4.3
 
-### Multiplicateurs de spawn par famille
+Starting with v4.3, invalid JSON configuration files are backed up with an `.invalid.bak` suffix before valid defaults are regenerated.
 
-Les multiplicateurs par defaut sont actuellement :
+This prevents malformed files from being silently overwritten without leaving a copy for diagnosis.
+
+### Default family spawn multipliers
 
 - `grass`: `1.0`
 - `sand`: `1.0`
@@ -131,18 +142,19 @@ Les multiplicateurs par defaut sont actuellement :
 - `netherflamme`: `0.6`
 - `soulflame`: `1.0`
 
-### Preferences de messages joueur
+### Player message preferences
 
-Chaque joueur peut aussi choisir quels messages il souhaite voir :
+Players can control which Rustling Spots messages they receive, including:
 
-- messages de rencontre Pokemon
-- messages de loot
-- messages de spot vide
+- Pokémon encounter messages
+- loot messages
+- empty spot messages
 
 ---
-## Commandes utiles
 
-### Commandes joueur
+## Commands
+
+### Player commands
 
 ```mcfunction
 /rustlingspots messages
@@ -153,7 +165,7 @@ Chaque joueur peut aussi choisir quels messages il souhaite voir :
 /rustlingspots messages empty on
 ```
 
-### Commandes admin / debug
+### Admin and debug commands
 
 ```mcfunction
 /rustlingspots spawn grass
@@ -167,47 +179,119 @@ Chaque joueur peut aussi choisir quels messages il souhaite voir :
 /rustlingspots scan 64 grass
 ```
 
-Notes utiles :
+Useful notes:
 
-- `spawn` accepte les familles integrees (`grass`, `water`, etc.) mais aussi les IDs complets de spots custom
-- `spawnshiny` force une version shiny pour les tests
-- `reload` recharge les configs, regles de familles, pools de loot, pools Pokemon et definitions de spots custom
-- `scan` sert au debug pour lister les spots actifs proches
-
----
-## Personnalisation avancee
-
-Le mod supporte aussi des **custom spots via datapack** :
-
-- spots personnalises par biome / bloc / dimension
-- familles Pokemon custom
-- familles de loot custom
-- particules ponderees personnalisees
-- priorite et poids de selection
-
-Un datapack peut donc ajouter ses propres spots sans addon Java ni modification du worldgen.
-
-Guide detaille :
-
-- [Custom Spot Definitions Guide](./custom-spot-definitions-guide.md)
-
-Un datapack d'exemple est deja fourni dans :
-
-- `example_datapacks/custom_swamp_spot_pack`
+- `spawn` accepts built-in families such as `grass` and `water`, plus complete custom spot IDs
+- `spawnshiny` forces a shiny spot for testing
+- `reload` reloads configs, family rules, loot pools, Pokémon pools and custom spot definitions
+- `stats` exposes Rustling Spots statistics
+- `scan` helps admins inspect active spots in a nearby radius
+- v4.3 fixed **Total Spots** statistics so multiple rewards from one spot are no longer counted as multiple spots
 
 ---
-## Compatibilite et securite
 
-- Aucun changement de worldgen
-- Compatible avec les sauvegardes existantes
-- Fonctionne dans plusieurs dimensions tant qu'une famille ou un spot custom peut correspondre
-- Compatibilite prevue avec la dimension de **Cobblemon Raid Dens**, activable ou desactivable via config
-- Les spots custom restent des ajouts de donnees, sans besoin de code additionnel
+## Custom Spots via Datapacks
+
+Rustling Spots includes a data-driven custom spot system. Servers and modpacks can create new spot definitions without writing a Java addon and without changing world generation.
+
+A custom datapack can define:
+
+- custom spot IDs
+- dimensions
+- biomes
+- blocks and surface rules
+- selection priority
+- selection weight
+- display names
+- Pokémon families
+- loot families
+- weighted particles
+- shiny options
+- visual family
+
+### `visual_family` in v4.3
+
+Since v4.3, custom spots can use the optional `visual_family` field to select the built-in rendering base that best matches the spot.
+
+Supported values are:
+
+```text
+grass
+sand
+water
+snow
+leaves
+cave
+netherflamme
+soulflame
+flying
+```
+
+If `visual_family` is missing or invalid, the custom spot keeps the historical `grass` visual fallback.
+
+Custom particles can still be used to give a datapack spot its own stronger identity.
+
+### Datapack structure
+
+The custom system uses three main data folders:
+
+```text
+<your_datapack>/
+|- pack.mcmeta
+`- data/
+   `- <namespace>/
+      `- rustling_spots/
+         |- spot_definitions/
+         |- pokemon_families/
+         `- loot_families/
+```
+
+### Full guides
+
+- [Custom Spot Definitions Guide, English](./custom-spot-definitions-guide-en.md)
+- [Custom Spot Definitions Guide, Français](./custom-spot-definitions-guide.md)
+
+A ready-to-use example datapack is included in:
+
+```text
+example_datapacks/custom_swamp_spot_pack
+```
+
+The example contains a custom spot, a custom Pokémon family, a custom loot family and mixed particle usage.
 
 ---
-## Resume court
 
-**Rustling Spots** apporte a *Cobblemon* un systeme de spots temporaires inspire de **Pokemon Noir & Blanc**.
-Le joueur repere un evenement visuel et sonore, s'en approche, puis declenche une rencontre ou une recompense thematique.
+## Compatibility and World Safety
 
-Avec ses **9 familles de spots**, ses **configurations JSON**, ses **commandes de debug**, ses **stats joueur**, ses **spots shiny**, ses **spots vides** et son **support datapack**, le mod ajoute une vraie boucle d'exploration dynamique sans toucher a la generation du monde.
+- No world generation changes
+- Safe for existing worlds
+- Fabric and NeoForge builds are maintained from the same multi-loader source tree
+- Spots can work across dimensions when their family rules or custom definitions match
+- Cobblemon Raid Dens dimension support can be allowed or disabled through configuration
+- Custom datapack spots are data-driven and do not require extra Java code
+
+---
+
+## v4.3 Documentation Notes
+
+The v4.3 documentation reflects the current source and changelogs, including:
+
+- custom `visual_family` support
+- historical `grass` fallback when `visual_family` is missing or invalid
+- improved spot synchronization after login, respawn and dimension changes
+- `.invalid.bak` backup for malformed JSON configuration files
+- corrected Total Spots statistics with multiple reward rolls
+- corrected custom spot documentation for the supported shiny chance field
+
+For loader-specific release notes:
+
+- [Fabric changelog](../CHANGELOG-FABRIC.md)
+- [NeoForge changelog](../CHANGELOG-NEOFORGE.md)
+
+---
+
+## Short Summary
+
+**Rustling Spots** brings temporary Gen 5-inspired exploration events to Cobblemon.
+
+Players discover visible spots in the world and interact with them to trigger Pokémon encounters or themed rewards. With **9 built-in families**, JSON configuration, admin tools, player statistics, shiny and empty spots, and a complete datapack system for custom definitions, the mod adds a configurable exploration loop without modifying world generation.
