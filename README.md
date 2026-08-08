@@ -140,11 +140,14 @@ Custom definitions can control:
 - loot reward families
 - shiny behavior
 
-Documentation:
+## Documentation
 
+English is the primary documentation language for this repository.
+
+- [Rustling Spots Wiki, English](./docs/rustling-spots-wiki.md)
+- [Rustling Spots Wiki, Français](./docs/rustling-spots-wiki-fr.md)
 - [Custom Spot Definitions Guide, English](./docs/custom-spot-definitions-guide-en.md)
 - [Custom Spot Definitions Guide, Français](./docs/custom-spot-definitions-guide.md)
-- [General Rustling Spots documentation, Français](./docs/rustling-spots-wiki.md)
 
 A ready-to-use example datapack is available in:
 
