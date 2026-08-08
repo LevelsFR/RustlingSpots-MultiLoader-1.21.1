@@ -259,6 +259,22 @@ example_datapacks/custom_swamp_spot_pack
 
 Cet exemple comprend un spot custom, une famille Pokémon custom, une famille de loot custom et un exemple de particules mixtes.
 
+Téléchargements officiels du datapack exemple :
+
+- [CurseForge - Rustling Spots Example Addon Datapack](https://www.curseforge.com/minecraft/data-packs/rustling-spots-example-addon-datapack)
+- [Modrinth - Rustling Spots Addon Datapack](https://modrinth.com/datapack/rustling-spots-addon-datapack)
+
+---
+
+## Add-ons officiels
+
+### Rustling Spots: Team Rocket
+
+**Rustling Spots: Team Rocket** est l'add-on officiel dédié à la Team Rocket pour Rustling Spots. Il ajoute des rencontres et du contenu sur le thème de la Team Rocket directement dans la boucle de gameplay des Rustling Spots. Le mod Rustling Spots principal est requis.
+
+- [CurseForge - Rustling Spots: Team Rocket](https://www.curseforge.com/minecraft/mc-mods/rs-teamrocket-addon)
+- [Modrinth - Rustling Spots: Team Rocket](https://modrinth.com/mod/rs-teamrocket-addon)
+
 ---
 
 ## Compatibilité et sécurité des mondes
