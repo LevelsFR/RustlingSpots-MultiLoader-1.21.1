@@ -1,6 +1,6 @@
 # Wiki Rustling Spots
 
-> **Documentation ciblée :** Rustling Spots **v4.3** pour Minecraft **1.21.1**.
+> **Documentation ciblée :** Rustling Spots **v5.0** pour Minecraft **1.21.1** et Cobblemon **1.8.0+**.
 >
 > English: [rustling-spots-wiki.md](./rustling-spots-wiki.md)
 
@@ -110,23 +110,21 @@ Un spot shiny force un résultat shiny lorsque le type de récompense le permet 
 
 ## Configuration
 
-Rustling Spots stocke ses principaux fichiers JSON dans :
+Tous les réglages normaux sont désormais disponibles uniquement dans l'écran **Cloth Config** en jeu.
 
-```text
-config/rustlingspots/
-```
+- Sur Fabric, installez Mod Menu puis ouvrez **Rustling Spots > Configure**.
+- Sur NeoForge, ouvrez **Mods > Rustling Spots > Config**.
+- Les préférences client sont toujours modifiables.
+- Les réglages serveur sont modifiables uniquement par le propriétaire du monde local ou un opérateur de niveau 2.
+- La sauvegarde applique immédiatement les réglages serveur.
 
-| Fichier | Rôle |
-| --- | --- |
-| `rustlingspots-server.json` | Activation globale, rayon, durée de vie, limites, shiny, spots vides et comportement des récompenses |
-| `rustlingspots-pokemon.json` | Chance de rencontre, niveaux et règles de spawn Pokémon |
-| `rustlingspots-client.json` | Options d'affichage côté client et préférences de messages |
-| `rustlingspots-sound.json` | Volume des sons de récompense |
-| `rustlingspots-families.json` | Multiplicateurs d'apparition des familles intégrées |
+L'écran contient les catégories Client, Général, Pokémon, Récompenses et sons, et Familles de spots. Cloth Config contrôle les limites numériques avant la sauvegarde, puis le serveur vérifie à nouveau chaque valeur reçue.
+
+Les anciens réglages JSON de la v4.x sont chargés et conservés automatiquement pendant la mise à jour. Ils restent sur le disque uniquement comme format de stockage interne du mod ; leur modification manuelle n'est plus la méthode supportée. Les pools Pokémon, pools de loot, données de surface/biome et spots custom par datapack restent du contenu avancé piloté par les données, pas des réglages ordinaires.
 
 ### Récupération plus sûre des configs en v4.3
 
-Depuis la v4.3, un fichier JSON invalide est sauvegardé avec le suffixe `.invalid.bak` avant la régénération des valeurs par défaut.
+Depuis la v4.3, un ancien fichier JSON invalide est sauvegardé avec le suffixe `.invalid.bak` avant la régénération des valeurs par défaut.
 
 Cela évite d'écraser silencieusement un fichier mal formé sans en conserver une copie pour diagnostic.
 
@@ -134,7 +132,7 @@ Cela évite d'écraser silencieusement un fichier mal formé sans en conserver u
 
 - `grass`: `1.0`
 - `sand`: `1.0`
-- `water`: `1.0`
+- `water`: `0.6`
 - `snow`: `1.0`
 - `leaves`: `0.7`
 - `cave`: `1.0`
@@ -288,10 +286,15 @@ Téléchargements officiels du datapack exemple :
 
 ---
 
-## Notes de documentation v4.3
+## Notes de documentation v5.0
 
-Cette documentation v4.3 reflète le code source et les changelogs actuels, notamment :
+Cette documentation v5.0 reflète le code source et les changelogs actuels, notamment :
 
+- création des Pokémon partagée entre Fabric et NeoForge via l'API de propriétés Cobblemon
+- support des espèces d'addons avec namespace et de la syntaxe de propriétés/formes Cobblemon
+- revalidation des pools après le rechargement des espèces Cobblemon, y compris celles fournies par des addons/datapacks
+- conservation des pools v4.x, des alias historiques et déduplication des avertissements d'entrées invalides
+- niveau et résultat shiny de Rustling appliqués de façon autoritaire, sans utilisation de la limite de spawn naturel
 - support de `visual_family` pour les spots custom
 - fallback historique `grass` si `visual_family` est absent ou invalide
 - meilleure synchronisation des spots après connexion, respawn et changement de dimension

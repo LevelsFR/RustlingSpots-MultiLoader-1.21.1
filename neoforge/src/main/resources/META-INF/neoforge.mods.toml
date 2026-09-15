@@ -10,7 +10,7 @@ displayName = "Rustling Spots"
 authors = "OurStory x LevelsFR"
 description = """Rustling Spots introduce dynamic points of activity across the world.
 When you explore, you may discover Rustling Spots that spawn themed particles and encounters.
-Each family of spots comes with its own curated Pokémon pools and item tables, fully customisable through configuration files.
+Each family of spots comes with its own curated Pokémon pools and item tables, with regular settings available through Cloth Config in game.
 Designed to be lightweight, immersive and flexible, Rustling Spots enhances exploration and rewards curiosity."""
 
 logoFile = "assets/rustlingspots/icon.png"
@@ -39,6 +39,13 @@ side = "BOTH"
 [[dependencies.rustlingspots]]
 modId = "cobblemon"
 type = "required"
-versionRange = "[1.7.1+1.21.1,)"
+versionRange = "[${cobblemonVersion},)"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.rustlingspots]]
+modId = "cloth_config"
+type = "required"
+versionRange = "[${clothConfigVersion},16)"
+ordering = "AFTER"
+side = "CLIENT"

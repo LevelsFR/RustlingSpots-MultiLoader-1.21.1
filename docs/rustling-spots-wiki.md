@@ -1,6 +1,6 @@
 # Rustling Spots Wiki
 
-> **Documentation target:** Rustling Spots **v4.3** for Minecraft **1.21.1**.
+> **Documentation target:** Rustling Spots **v5.0** for Minecraft **1.21.1** and Cobblemon **1.8.0+**.
 >
 > Français: [rustling-spots-wiki-fr.md](./rustling-spots-wiki-fr.md)
 
@@ -110,23 +110,21 @@ A shiny spot forces a shiny reward outcome where supported and can announce the 
 
 ## Configuration
 
-Rustling Spots stores its main JSON configuration under:
+All normal settings are now available exclusively through the in-game **Cloth Config** screen.
 
-```text
-config/rustlingspots/
-```
+- On Fabric, install Mod Menu and open **Rustling Spots > Configure**.
+- On NeoForge, open **Mods > Rustling Spots > Config**.
+- Client preferences are always editable.
+- Server settings are editable only by the local world owner or a level 2 operator.
+- Saving applies server settings immediately.
 
-| File | Purpose |
-| --- | --- |
-| `rustlingspots-server.json` | Global activation, radius, lifetime, limits, shiny settings, empty spots and reward behavior |
-| `rustlingspots-pokemon.json` | Pokémon encounter chance, levels and spawn rules |
-| `rustlingspots-client.json` | Client display options and message preferences |
-| `rustlingspots-sound.json` | Reward sound volumes |
-| `rustlingspots-families.json` | Spawn multipliers for built-in families |
+The screen contains Client, General, Pokémon, Rewards and Sounds, and Spot Families categories. Cloth Config validates numeric ranges before saving, and the server validates every submitted value again.
+
+Existing v4.x JSON settings are loaded and preserved automatically during the upgrade. They remain on disk only as the mod's persistence format; editing them manually is no longer the supported workflow. Pokémon pools, loot pools, surface/biome data and custom datapack spots remain advanced data-driven content rather than normal settings.
 
 ### Safer config recovery in v4.3
 
-Starting with v4.3, invalid JSON configuration files are backed up with an `.invalid.bak` suffix before valid defaults are regenerated.
+Starting with v4.3, invalid legacy JSON configuration files are backed up with an `.invalid.bak` suffix before valid defaults are regenerated.
 
 This prevents malformed files from being silently overwritten without leaving a copy for diagnosis.
 
@@ -134,7 +132,7 @@ This prevents malformed files from being silently overwritten without leaving a 
 
 - `grass`: `1.0`
 - `sand`: `1.0`
-- `water`: `1.0`
+- `water`: `0.6`
 - `snow`: `1.0`
 - `leaves`: `0.7`
 - `cave`: `1.0`
@@ -288,10 +286,15 @@ Official example datapack downloads:
 
 ---
 
-## v4.3 Documentation Notes
+## v5.0 Documentation Notes
 
-The v4.3 documentation reflects the current source and changelogs, including:
+The v5.0 documentation reflects the current source and changelogs, including:
 
+- shared Fabric/NeoForge Pokemon creation through Cobblemon's property API
+- namespaced addon species and Cobblemon property/form support
+- pool revalidation after Cobblemon species reloads, including species supplied by addons/datapacks
+- v4.x pool preservation, historical compatibility aliases and deduplicated invalid-entry warnings
+- authoritative Rustling level and shiny rolls with no natural spawn-cap usage
 - custom `visual_family` support
 - historical `grass` fallback when `visual_family` is missing or invalid
 - improved spot synchronization after login, respawn and dimension changes

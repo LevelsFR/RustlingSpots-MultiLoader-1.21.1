@@ -10,6 +10,7 @@ public final class RustlingSpotsDatapackReloadService {
     }
 
     public static void reload(ResourceManager resourceManager) {
+        PokemonPoolService.beginReloadCycle();
         LootPoolService.reloadDatapack(resourceManager);
         PokemonPoolService.reloadDatapack(resourceManager);
         CustomSpotDefinitionRegistry.reload(resourceManager);

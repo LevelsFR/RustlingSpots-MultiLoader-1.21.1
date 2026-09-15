@@ -264,7 +264,8 @@ public final class RustlingSpotCommands {
                             return;
                         }
 
-                        RustlingSpotsReloadService.reloadAll(source.getServer());
+                        // Server resources already invoked the datapack reload listeners above.
+                        RustlingSpotsReloadService.reloadAll();
                         source.sendSuccess(() -> Component.literal("Rustling Spots configs, family rules, loot pools, Pokemon pools, and custom spot definitions reloaded."), true);
                     })
             );

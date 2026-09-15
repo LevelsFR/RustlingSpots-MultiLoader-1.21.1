@@ -3,6 +3,10 @@ package net.levelscraft7.rustlingspots.network;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.levelscraft7.rustlingspots.network.RustlingConfigNetworkService;
+import net.levelscraft7.rustlingspots.network.packet.RustlingConfigRequestC2SPacket;
+import net.levelscraft7.rustlingspots.network.packet.RustlingConfigSnapshotS2CPacket;
+import net.levelscraft7.rustlingspots.network.packet.RustlingConfigUpdateC2SPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingMessagePreferencesC2SPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingMessagePreferencesS2CPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingSpotRemovePacket;
@@ -20,7 +24,10 @@ public final class RustlingSpotsNetwork {
         PayloadTypeRegistry.playS2C().register(RustlingSpotRemovePacket.TYPE, RustlingSpotRemovePacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(RustlingSpotSyncPacket.TYPE, RustlingSpotSyncPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(RustlingMessagePreferencesS2CPacket.TYPE, RustlingMessagePreferencesS2CPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(RustlingConfigSnapshotS2CPacket.TYPE, RustlingConfigSnapshotS2CPacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RustlingMessagePreferencesC2SPacket.TYPE, RustlingMessagePreferencesC2SPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(RustlingConfigRequestC2SPacket.TYPE, RustlingConfigRequestC2SPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(RustlingConfigUpdateC2SPacket.TYPE, RustlingConfigUpdateC2SPacket.STREAM_CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(RustlingMessagePreferencesC2SPacket.TYPE, (payload, context) ->
                 context.server().execute(() ->
@@ -31,8 +38,17 @@ public final class RustlingSpotsNetwork {
                                 payload.showEmptySpotMessages()
                         ))
         );
+        ServerPlayNetworking.registerGlobalReceiver(RustlingConfigRequestC2SPacket.TYPE, (payload, context) ->
+                context.server().execute(() -> RustlingConfigNetworkService.sendSnapshot(context.player()))
+        );
+        ServerPlayNetworking.registerGlobalReceiver(RustlingConfigUpdateC2SPacket.TYPE, (payload, context) ->
+                context.server().execute(() -> RustlingConfigNetworkService.applyUpdate(context.player(), payload.config()))
+        );
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
-                server.execute(() -> RustlingSpotSyncService.sendFullSync(handler.player))
+                server.execute(() -> {
+                    RustlingSpotSyncService.sendFullSync(handler.player);
+                    RustlingConfigNetworkService.sendSnapshot(handler.player);
+                })
         );
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
                 RustlingPlayerPreferences.clear(handler.player)

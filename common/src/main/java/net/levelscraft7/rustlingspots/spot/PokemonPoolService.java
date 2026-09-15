@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
@@ -57,7 +58,9 @@ public final class PokemonPoolService {
     private static final Set<String> LOADED_FAMILIES = new HashSet<>();
     private static final List<PokemonEntry> DATAPACK_ENTRIES = new ArrayList<>();
     private static final Set<String> DATAPACK_FAMILIES = new HashSet<>();
+    private static final Set<String> WARNED_POOL_ENTRIES = ConcurrentHashMap.newKeySet();
     private static SpeciesValidator speciesValidator = SpeciesValidator.unavailable("Cobblemon species API is not available on this loader");
+    private static volatile ResourceManager latestDatapackResourceManager;
 
     private static final Map<String, String> V4_1_DEFAULT_SHA256 = Map.of(
             "grass", "6997af0dc0d5e43ef392bc3ee1adbb1c6fd3903c7891a0bf9ed10c47ca3fc67b",
@@ -606,9 +609,23 @@ public final class PokemonPoolService {
         }
     }
 
-    private static String normalizeSpeciesForDefaults(String species) {
-        String normalized = species.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
-        return SPECIES_RENAMES.getOrDefault(normalized, normalized);
+    private static String normalizeSpeciesForDefaults(String configuredProperties) {
+        String normalized = configuredProperties.trim().replaceAll("\\s+", " ");
+        String lowerCase = normalized.toLowerCase(Locale.ROOT);
+        String exactAlias = SPECIES_RENAMES.get(lowerCase);
+        if (exactAlias != null) {
+            return exactAlias;
+        }
+
+        int firstSpace = normalized.indexOf(' ');
+        if (firstSpace > 0) {
+            String legacySpecies = normalized.substring(0, firstSpace).toLowerCase(Locale.ROOT);
+            String migratedSpecies = SPECIES_RENAMES.get(legacySpecies);
+            if (migratedSpecies != null) {
+                return migratedSpecies + normalized.substring(firstSpace);
+            }
+        }
+        return normalized;
     }
 
     private static Set<String> removedFromFamily(RustlingSpotFamily family) {
@@ -787,7 +804,30 @@ public final class PokemonPoolService {
 
     public static void setSpeciesValidator(SpeciesValidator validator) {
         speciesValidator = validator != null ? validator : SpeciesValidator.unavailable("Cobblemon species API is not available on this loader");
+        WARNED_POOL_ENTRIES.clear();
         LOADED.set(false);
+    }
+
+    public static void beginReloadCycle() {
+        WARNED_POOL_ENTRIES.clear();
+    }
+
+    /**
+     * Re-reads both config and datapack pools after Cobblemon has completed a species reload.
+     * Reloading from the original sources is important: an addon species that becomes valid in
+     * the same reload must be restored, not left filtered out of an earlier in-memory pass.
+     */
+    public static synchronized void reloadAfterSpeciesRegistry(int loadedSpeciesCount) {
+        if (!speciesValidator.isAvailable()) {
+            return;
+        }
+
+        reload();
+        ResourceManager resourceManager = latestDatapackResourceManager;
+        if (resourceManager != null) {
+            reloadDatapack(resourceManager);
+        }
+        LOGGER.info("[Rustling Spots] Pokemon pools validated against {} loaded Cobblemon species", loadedSpeciesCount);
     }
 
     public static void reload() {
@@ -801,7 +841,8 @@ public final class PokemonPoolService {
         return !key.isEmpty() && (LOADED_FAMILIES.contains(key) || DATAPACK_FAMILIES.contains(key));
     }
 
-    public static void reloadDatapack(ResourceManager resourceManager) {
+    public static synchronized void reloadDatapack(ResourceManager resourceManager) {
+        latestDatapackResourceManager = resourceManager;
         DATAPACK_ENTRIES.clear();
         DATAPACK_FAMILIES.clear();
 
@@ -940,8 +981,8 @@ public final class PokemonPoolService {
                         String duplicateKey = pokemonEntry.species() + "|" + pokemonEntry.weight()
                                 + "|" + pokemonEntry.minLevel() + "|" + pokemonEntry.maxLevel();
                         if (!seen.add(duplicateKey)) {
-                            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, species={}, reason=duplicate identical entry, action=skipped",
-                                    path, entryIndex, pokemonEntry.species());
+                            warnPoolEntry(path.toString(), entryIndex, pokemonEntry.species(),
+                                    "duplicate identical entry", "skipped");
                             return;
                         }
                         parsed.add(pokemonEntry);
@@ -959,34 +1000,30 @@ public final class PokemonPoolService {
 
     private static Optional<PokemonEntry> toEntry(PokemonEntryData data, String familyTag, Path path, int index) {
         if (data == null) {
-            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, reason=entry could not be parsed, action=skipped", path, index);
+            warnPoolEntry(path.toString(), index, null, "entry could not be parsed", "skipped");
             return Optional.empty();
         }
         if (data.species == null) {
-            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, reason=missing required field species, action=skipped", path, index);
+            warnPoolEntry(path.toString(), index, null, "missing required field species", "skipped");
             return Optional.empty();
         }
         if (data.weight <= 0) {
-            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, species={}, reason=weight <= 0, action=skipped",
-                    path, index, data.species);
+            warnPoolEntry(path.toString(), index, data.species, "weight <= 0", "skipped");
             return Optional.empty();
         }
 
         String species = normalizeSpeciesForDefaults(data.species);
         if (species.isEmpty()) {
-            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, species={}, reason=empty species, action=skipped",
-                    path, index, data.species);
+            warnPoolEntry(path.toString(), index, data.species, "empty species", "skipped");
             return Optional.empty();
         }
         if (REMOVED_DEFAULT_SPECIES.contains(species)) {
-            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, species={}, reason=known invalid form syntax, action=skipped",
-                    path, index, data.species);
+            warnPoolEntry(path.toString(), index, data.species, "known invalid form syntax", "skipped");
             return Optional.empty();
         }
         SpeciesValidation validation = speciesValidator.validate(species);
         if (validation.available() && !validation.valid()) {
-            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, species={}, reason={}, action=skipped",
-                    path, index, species, validation.reason());
+            warnPoolEntry(path.toString(), index, species, validation.reason(), "skipped");
             return Optional.empty();
         }
 
@@ -1006,20 +1043,37 @@ public final class PokemonPoolService {
         Integer minLevel = data.min_level != null ? Math.max(1, data.min_level) : null;
         Integer maxLevel = data.max_level != null ? Math.max(1, data.max_level) : null;
         if (data.min_level != null && data.min_level < 1) {
-            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, species={}, reason=min_level < 1, action=kept clamped",
-                    path, index, species);
+            warnPoolEntry(path.toString(), index, species, "min_level < 1", "kept clamped");
         }
         if (data.max_level != null && data.max_level < 1) {
-            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, species={}, reason=max_level < 1, action=kept clamped",
-                    path, index, species);
+            warnPoolEntry(path.toString(), index, species, "max_level < 1", "kept clamped");
         }
         if (minLevel != null && maxLevel != null && maxLevel < minLevel) {
-            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, species={}, reason=max_level is below min_level, action=kept with resolver bounds",
-                    path, index, species);
+            warnPoolEntry(path.toString(), index, species, "max_level is below min_level", "kept with resolver bounds");
         }
         Boolean shiny = data.shiny;
         Double shinyChance = data.shinyChance;
-        return Optional.of(new PokemonEntry(species, data.weight, minLevel, maxLevel, shiny, shinyChance, families, path.toString()));
+        return Optional.of(new PokemonEntry(species, data.weight, minLevel, maxLevel, shiny, shinyChance,
+                families, path.toString(), index));
+    }
+
+    static void warnInvalidEncounter(PokemonEntry entry, String reason) {
+        warnPoolEntry(entry.sourcePath(), entry.sourceIndex(), entry.species(), reason, "encounter skipped");
+    }
+
+    private static void warnPoolEntry(String sourcePath, int index, String species, String reason, String action) {
+        String warningKey = sourcePath + '\u0000' + index + '\u0000' + reason + '\u0000' + action;
+        if (!WARNED_POOL_ENTRIES.add(warningKey)) {
+            return;
+        }
+
+        if (species == null) {
+            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, reason={}, action={}",
+                    sourcePath, index, reason, action);
+        } else {
+            LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, entry={}, species={}, reason={}, action={}",
+                    sourcePath, index, species, reason, action);
+        }
     }
 
     private static void writeOrMigrateDefault(Path path, String familyKey, String v42Default, String v41Sha256) throws IOException {
@@ -1141,7 +1195,8 @@ public final class PokemonPoolService {
     }
 
     public record PokemonEntry(String species, int weight, Integer minLevel, Integer maxLevel,
-                               Boolean shiny, Double shinyChance, Set<String> families, String sourcePath) {
+                               Boolean shiny, Double shinyChance, Set<String> families, String sourcePath,
+                               int sourceIndex) {
 
         public boolean matchesFamily(String family) {
             return families == null || families.isEmpty() || families.contains(family);

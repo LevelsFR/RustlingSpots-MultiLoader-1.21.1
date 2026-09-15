@@ -5,14 +5,15 @@ import net.levelscraft7.rustlingspots.config.RustlingSpotsFamilySpawnConfig;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsPokemonConfig;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsServerConfig;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsSoundConfig;
-import net.levelscraft7.rustlingspots.neoforge.spot.PokemonSpawnResolver;
 import net.levelscraft7.rustlingspots.neoforge.network.RustlingSpotsNetwork;
 import net.levelscraft7.rustlingspots.neoforge.registry.RustlingParticleTypes;
 import net.levelscraft7.rustlingspots.neoforge.registry.RustlingSoundEvents;
 import net.levelscraft7.rustlingspots.neoforge.spot.RustlingSpotCommands;
 import net.levelscraft7.rustlingspots.spot.LootPoolService;
 import net.levelscraft7.rustlingspots.spot.PokemonPoolService;
+import net.levelscraft7.rustlingspots.spot.PokemonSpawnResolver;
 import net.levelscraft7.rustlingspots.spot.RustlingPlayerPreferences;
+import net.levelscraft7.rustlingspots.network.RustlingConfigNetworkService;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotFamilyConfigService;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotSyncService;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotsDatapackReloadService;
@@ -52,7 +53,6 @@ public class RustlingSpotsMod {
         RustlingSpotsPokemonConfig.load();
         RustlingSpotsSoundConfig.load();
         SpotRewardResolver.setPokemonEncounterSpawner(PokemonSpawnResolver::spawn);
-        PokemonPoolService.setSpeciesValidator(PokemonSpawnResolver.speciesValidator());
         RustlingSpotFamilyConfigService.ensureDefaultsExist();
         LootPoolService.ensureDefaultsExist();
         PokemonPoolService.ensureDefaultsExist();
@@ -64,6 +64,7 @@ public class RustlingSpotsMod {
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent event) -> {
             if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
                 RustlingSpotSyncService.sendFullSync(player);
+                RustlingConfigNetworkService.sendSnapshot(player);
             }
         });
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerRespawnEvent event) -> {
@@ -93,6 +94,7 @@ public class RustlingSpotsMod {
 
             @Override
             protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
+                PokemonSpawnResolver.installSpeciesValidation();
                 RustlingSpotsDatapackReloadService.reload(resourceManager);
             }
         });

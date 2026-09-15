@@ -15,11 +15,13 @@ import net.levelscraft7.rustlingspots.registry.RustlingParticleTypes;
 import net.levelscraft7.rustlingspots.registry.RustlingSoundEvents;
 import net.levelscraft7.rustlingspots.spot.LootPoolService;
 import net.levelscraft7.rustlingspots.spot.PokemonPoolService;
+import net.levelscraft7.rustlingspots.spot.PokemonSpawnResolver;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotCommands;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotFamilyConfigService;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotSyncService;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotsDatapackReloadService;
 import net.levelscraft7.rustlingspots.spot.SpotSpawner;
+import net.levelscraft7.rustlingspots.spot.SpotRewardResolver;
 import net.levelscraft7.rustlingspots.spot.SpotTicker;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
@@ -33,6 +35,7 @@ public final class RustlingSpotsFabricMod implements ModInitializer {
         RustlingSpotsPokemonConfig.load();
         RustlingSpotsSoundConfig.load();
 
+        SpotRewardResolver.setPokemonEncounterSpawner(PokemonSpawnResolver::spawn);
         RustlingSpotFamilyConfigService.ensureDefaultsExist();
         LootPoolService.ensureDefaultsExist();
         PokemonPoolService.ensureDefaultsExist();
@@ -48,6 +51,7 @@ public final class RustlingSpotsFabricMod implements ModInitializer {
 
             @Override
             public void onResourceManagerReload(ResourceManager resourceManager) {
+                PokemonSpawnResolver.installSpeciesValidation();
                 RustlingSpotsDatapackReloadService.reload(resourceManager);
             }
         });

@@ -9,6 +9,10 @@ import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.levelscraft7.rustlingspots.RustlingSpots;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsClientConfig;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsServerConfig;
+import net.levelscraft7.rustlingspots.configscreen.RustlingConfigClientState;
+import net.levelscraft7.rustlingspots.network.packet.RustlingConfigRequestC2SPacket;
+import net.levelscraft7.rustlingspots.network.packet.RustlingConfigSnapshotS2CPacket;
+import net.levelscraft7.rustlingspots.network.packet.RustlingConfigUpdateC2SPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingMessagePreferencesC2SPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingMessagePreferencesS2CPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingSpotRemovePacket;
@@ -29,6 +33,11 @@ public final class RustlingSpotsFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         RustlingSpotsClientConfig.load();
+        RustlingConfigClientState.configure(
+                () -> ClientPlayNetworking.send(new RustlingConfigRequestC2SPacket()),
+                config -> ClientPlayNetworking.send(new RustlingConfigUpdateC2SPacket(config)),
+                RustlingSpotsFabricClient::syncRewardMessagePreference
+        );
         RustlingSpotClientHandler.bootstrap();
         registerParticleFactories();
         registerClientReceivers();
@@ -36,7 +45,13 @@ public final class RustlingSpotsFabricClient implements ClientModInitializer {
     }
 
     private static void registerClientReceivers() {
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> syncRewardMessagePreference());
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            syncRewardMessagePreference();
+            RustlingConfigClientState.requestServerConfig();
+        });
+        ClientPlayNetworking.registerGlobalReceiver(RustlingConfigSnapshotS2CPacket.TYPE, (payload, context) ->
+                context.client().execute(() -> RustlingConfigClientState.receive(payload))
+        );
         ClientPlayNetworking.registerGlobalReceiver(RustlingMessagePreferencesS2CPacket.TYPE, (payload, context) ->
                 context.client().execute(() -> applyMessagePreferences(payload))
         );

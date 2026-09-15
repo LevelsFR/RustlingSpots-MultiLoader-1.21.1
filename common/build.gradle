@@ -10,11 +10,24 @@ sourceSets {
             exclude 'net/levelscraft7/rustlingspots/registry/**'
         }
         resources {
-            exclude 'fabric.mod.json'
             exclude 'rustlingspots.mixins.json'
         }
     }
 }
+
+repositories {
+    maven { url = 'https://maven.shedaniel.me/' }
+    maven {
+        name = 'CurseMaven'
+        url = 'https://cursemaven.com'
+        content {
+            includeGroup 'curse.maven'
+        }
+    }
+}
+
+def cobblemonNeoForgeJarPath = findProperty("local_cobblemon_neoforge_jar") ?: System.getenv("COBBLEMON_NEOFORGE_JAR")
+def localCobblemonNeoForgeJar = cobblemonNeoForgeJarPath == null ? null : file(cobblemonNeoForgeJarPath)
 
 dependencies {
     // We depend on Fabric Loader here to use the Fabric @Environment annotations,
@@ -24,4 +37,13 @@ dependencies {
 
     // Architectury API. This is optional, and you can comment it out if you don't need it.
     modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+
+    modCompileOnly "me.shedaniel.cloth:cloth-config:$rootProject.cloth_config_version"
+
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:2.2.20"
+    if (localCobblemonNeoForgeJar != null && localCobblemonNeoForgeJar.exists()) {
+        compileOnly files(localCobblemonNeoForgeJar)
+    } else {
+        modCompileOnly "curse.maven:cobblemon-687131:$rootProject.cobblemon_neoforge_curse_id"
+    }
 }

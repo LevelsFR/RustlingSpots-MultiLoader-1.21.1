@@ -2,6 +2,10 @@ package net.levelscraft7.rustlingspots.neoforge.network;
 
 import net.levelscraft7.rustlingspots.RustlingSpotsMod;
 import net.levelscraft7.rustlingspots.client.RustlingSpotClientHandler;
+import net.levelscraft7.rustlingspots.network.RustlingConfigNetworkService;
+import net.levelscraft7.rustlingspots.network.packet.RustlingConfigRequestC2SPacket;
+import net.levelscraft7.rustlingspots.network.packet.RustlingConfigSnapshotS2CPacket;
+import net.levelscraft7.rustlingspots.network.packet.RustlingConfigUpdateC2SPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingMessagePreferencesC2SPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingMessagePreferencesS2CPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingSpotRemovePacket;
@@ -32,6 +36,9 @@ public final class RustlingSpotsNetwork {
         registrar.playToClient(RustlingMessagePreferencesS2CPacket.TYPE, RustlingMessagePreferencesS2CPacket.STREAM_CODEC, (packet, context) ->
                 context.enqueueWork(() -> net.levelscraft7.rustlingspots.RustlingSpotsNeoForgeClient.applyMessagePreferences(packet))
         );
+        registrar.playToClient(RustlingConfigSnapshotS2CPacket.TYPE, RustlingConfigSnapshotS2CPacket.STREAM_CODEC, (packet, context) ->
+                context.enqueueWork(() -> net.levelscraft7.rustlingspots.RustlingSpotsNeoForgeClient.applyServerConfig(packet))
+        );
         registrar.playToServer(RustlingMessagePreferencesC2SPacket.TYPE, RustlingMessagePreferencesC2SPacket.STREAM_CODEC, (packet, context) ->
                 context.enqueueWork(() -> {
                     if (context.player() instanceof net.minecraft.server.level.ServerPlayer player) {
@@ -41,6 +48,20 @@ public final class RustlingSpotsNetwork {
                                 packet.showLootMessages(),
                                 packet.showEmptySpotMessages()
                         );
+                    }
+                })
+        );
+        registrar.playToServer(RustlingConfigRequestC2SPacket.TYPE, RustlingConfigRequestC2SPacket.STREAM_CODEC, (packet, context) ->
+                context.enqueueWork(() -> {
+                    if (context.player() instanceof net.minecraft.server.level.ServerPlayer player) {
+                        RustlingConfigNetworkService.sendSnapshot(player);
+                    }
+                })
+        );
+        registrar.playToServer(RustlingConfigUpdateC2SPacket.TYPE, RustlingConfigUpdateC2SPacket.STREAM_CODEC, (packet, context) ->
+                context.enqueueWork(() -> {
+                    if (context.player() instanceof net.minecraft.server.level.ServerPlayer player) {
+                        RustlingConfigNetworkService.applyUpdate(player, packet.config());
                     }
                 })
         );

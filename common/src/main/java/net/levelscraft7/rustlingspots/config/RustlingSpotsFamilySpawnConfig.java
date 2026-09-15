@@ -36,6 +36,14 @@ public final class RustlingSpotsFamilySpawnConfig {
         }
     }
 
+    public static void save() {
+        try {
+            ConfigIO.save(PATH, FAMILIES);
+        } catch (Exception e) {
+            LOGGER.error("[Rustling Spots] Failed to save family spawn config at {}", PATH, e);
+        }
+    }
+
     private static double defaultRateFor(RustlingSpotFamily family) {
         return switch (family) {
             case GRASS -> 1.0D;

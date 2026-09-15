@@ -65,7 +65,7 @@ Each family can be independently enabled, disabled or rebalanced through configu
 
 - **Minecraft 1.21.1**
 - **Java 21**
-- **Cobblemon**
+- **Cobblemon 1.8.0+**
 - **Fabric** or **NeoForge**
 
 Fabric builds also use Fabric API and Architectury API as declared by the project metadata.
@@ -79,21 +79,16 @@ Install the appropriate loader build in your `mods` folder together with its req
 
 ## Configuration
 
-Rustling Spots exposes several JSON configuration files under:
+All regular Rustling Spots settings are edited in game through **Cloth Config**:
 
-```text
-config/rustlingspots/
-```
+- Fabric: open Rustling Spots from **Mod Menu**, then select **Configure**.
+- NeoForge: open **Mods**, select Rustling Spots, then select **Config**.
+- The local world owner or a level 2 operator can change server settings; other players retain access to their client preferences.
+- Saving server settings applies them immediately without restarting the server.
 
-| File | Purpose |
-| --- | --- |
-| `rustlingspots-server.json` | Global behavior, radius, lifetime, limits, shiny and reward settings |
-| `rustlingspots-pokemon.json` | Pokémon encounter chances, levels and spawn rules |
-| `rustlingspots-client.json` | Client display and message preferences |
-| `rustlingspots-sound.json` | Reward sound volumes |
-| `rustlingspots-families.json` | Spawn multipliers for built-in families |
+Cloth Config 15.x is therefore a required client dependency. Mod Menu remains the Fabric entry point for opening the screen.
 
-If a configuration file contains invalid JSON, Rustling Spots backs it up with an `.invalid.bak` suffix before restoring valid defaults.
+The existing v4.x JSON files under `config/rustlingspots/` are retained as internal persistence and are imported automatically. Players upgrading an existing installation keep their values; manual file editing is no longer the supported configuration workflow. Advanced Pokémon pools, loot pools and custom spot definitions remain data-driven content for modpack authors.
 
 ## Commands
 
@@ -182,7 +177,9 @@ This repository is a multi-loader project built around Architectury:
 └── example_datapacks/
 ```
 
-The current source tree targets **Minecraft 1.21.1** and **Java 21**.
+The current source tree targets **Rustling Spots 5.0**, **Minecraft 1.21.1**, **Java 21**, and **Cobblemon 1.8.0+**.
+
+Existing v4.x pool files remain in place when upgrading. Rustling keeps its historical species aliases, validates entries again after Cobblemon has loaded or reloaded its 1.8 species registry, and skips only invalid entries without replacing customized pools.
 
 ## Building from Source
 
@@ -204,7 +201,7 @@ Loader-specific artifacts are generated from the Fabric and NeoForge modules und
 
 ## Changelog
 
-Loader-specific v4.3 changelogs are available here:
+Loader-specific v5.0 changelogs are available here:
 
 - [Fabric changelog](./CHANGELOG-FABRIC.md)
 - [NeoForge changelog](./CHANGELOG-NEOFORGE.md)
