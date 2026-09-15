@@ -149,7 +149,33 @@ public final class PokemonSpawnResolver {
     }
 
     private static boolean matchesForm(FormData form, String requestedForm) {
-        return form.formOnlyShowdownId().equalsIgnoreCase(requestedForm);
+        if (requestedForm == null || requestedForm.isBlank()) {
+            return false;
+        }
+
+        String normalizedRequested = normalizeFormToken(requestedForm);
+        return normalizedRequested.equals(normalizeFormToken(form.getName()))
+                || normalizedRequested.equals(normalizeFormToken(form.formOnlyShowdownId()));
+    }
+
+    /**
+     * Cobblemon addon forms may expose equivalent names using spaces, dashes or underscores.
+     * Normalizing those separators keeps datapack-added forms, including Mega Showdown forms,
+     * compatible without depending on a specific addon version or naming style.
+     */
+    private static String normalizeFormToken(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+
+        StringBuilder normalized = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (Character.isLetterOrDigit(c)) {
+                normalized.append(Character.toLowerCase(c));
+            }
+        }
+        return normalized.toString();
     }
 
     private static Optional<String> spawnCobblemon(ServerLevel level, ServerPlayer player, RustlingSpot spot, PokemonProperties properties) {
