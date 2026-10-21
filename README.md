@@ -219,3 +219,11 @@ See [LICENSE](./LICENSE) for the complete license text.
 **Rustling Spots** by **OurStory × LevelsFR**
 
 </div>
+
+## Project guide and verified downloads
+
+[Complete project guide](docs/PROJECT_GUIDE.md) — features, dependency metadata, commands, configuration, source map and build instructions.
+
+- [Source repository](https://github.com/LevelsFR/RustlingSpots-MultiLoader-1.21.1/tree/master) (public).
+- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/rustling-spots) — published project verified under LevelsFR.
+- [Modrinth](https://modrinth.com/mod/cobblemon-rustling-spots) — approved project in the LevelsFR profile.
