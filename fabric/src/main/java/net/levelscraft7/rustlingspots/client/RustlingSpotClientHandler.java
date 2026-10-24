@@ -4,11 +4,14 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.levelscraft7.rustlingspots.network.packet.RustlingSpotSpawnPacket;
 import net.levelscraft7.rustlingspots.network.packet.RustlingSpotSyncPacket;
+import net.levelscraft7.rustlingspots.spot.RustlingSoundResolver;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotFamily;
 import net.levelscraft7.rustlingspots.spot.WeightedParticleReference;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
@@ -34,13 +37,13 @@ public final class RustlingSpotClientHandler {
     }
 
     public static void handleSpawn(RustlingSpotSpawnPacket packet) {
-        ACTIVE.put(packet.id(), new ClientSpot(packet.id(), packet.pos(), packet.family(), packet.shiny(), packet.particles()));
+        ACTIVE.put(packet.id(), new ClientSpot(packet, true));
     }
 
     public static void handleSync(RustlingSpotSyncPacket packet) {
         ACTIVE.clear();
         for (RustlingSpotSpawnPacket spot : packet.spots()) {
-            handleSpawn(spot);
+            ACTIVE.put(spot.id(), new ClientSpot(spot, false));
         }
     }
 
@@ -59,22 +62,26 @@ public final class RustlingSpotClientHandler {
         }
 
         long time = mc.level.getGameTime();
-        ACTIVE.values().forEach(spot -> spot.tick(time));
+        ACTIVE.values().forEach(spot -> spot.tick(time, mc.player));
     }
 
     static final class ClientSpot {
         private final UUID id;
         private final BlockPos pos;
         private final RustlingSpotFamily family;
+        private final int ambientVariant;
         private final boolean shiny;
         private final List<WeightedParticleReference> particles;
+        private boolean approachCuePlayed;
 
-        private ClientSpot(UUID id, BlockPos pos, RustlingSpotFamily family, boolean shiny, List<WeightedParticleReference> particles) {
-            this.id = id;
-            this.pos = pos;
-            this.family = family;
-            this.shiny = shiny;
-            this.particles = particles == null ? List.of() : List.copyOf(particles);
+        private ClientSpot(RustlingSpotSpawnPacket packet, boolean playApproachCue) {
+            this.id = packet.id();
+            this.pos = packet.pos();
+            this.family = packet.family();
+            this.ambientVariant = packet.ambientVariant();
+            this.shiny = packet.shiny();
+            this.particles = packet.particles() == null ? List.of() : List.copyOf(packet.particles());
+            this.approachCuePlayed = !playApproachCue;
         }
 
         BlockPos getPos() {
@@ -85,9 +92,19 @@ public final class RustlingSpotClientHandler {
             return family;
         }
 
-        private void tick(long gameTime) {
+        private void tick(long gameTime, LocalPlayer player) {
             if (gameTime % 10 == 0) {
                 RustlingParticles.spawn(family, pos, shiny, particles);
+            }
+            if (!approachCuePlayed && player != null
+                    && player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= 64.0D) {
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.level != null) {
+                    float pitch = 0.92F + mc.level.random.nextFloat() * 0.16F;
+                    mc.level.playLocalSound(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D,
+                            RustlingSoundResolver.ambientVariant(ambientVariant), SoundSource.AMBIENT, 0.22F, pitch, false);
+                    approachCuePlayed = true;
+                }
             }
         }
     }

@@ -859,12 +859,13 @@ public final class PokemonPoolService {
             }
 
             try (InputStreamReader reader = new InputStreamReader(entry.getValue().open(), StandardCharsets.UTF_8)) {
-                PokemonEntryData[] data = GSON.fromJson(reader, PokemonEntryData[].class);
-                if (data != null) {
-                    Path sourcePath = Path.of(entry.getKey().getNamespace()).resolve(entry.getKey().getPath());
-                    for (int i = 0; i < data.length; i++) {
-                        toEntry(data[i], familyKey, sourcePath, i).ifPresent(DATAPACK_ENTRIES::add);
-                    }
+                JsonArray data = readPoolArray(reader);
+                Path sourcePath = Path.of(entry.getKey().getNamespace()).resolve(entry.getKey().getPath());
+                for (int i = 0; i < data.size(); i++) {
+                    int entryIndex = i;
+                    parsePoolEntry(data.get(i), sourcePath, entryIndex)
+                            .flatMap(entryData -> toEntry(entryData, familyKey, sourcePath, entryIndex))
+                            .ifPresent(DATAPACK_ENTRIES::add);
                 }
                 DATAPACK_FAMILIES.add(familyKey);
             } catch (IOException | JsonParseException e) {
@@ -970,24 +971,22 @@ public final class PokemonPoolService {
     private static List<PokemonEntry> readPool(Path path, String familyTag) {
         List < PokemonEntry > parsed = new ArrayList <> ();
         try (Reader reader = Files.newBufferedReader(path)) {
-            PokemonEntryData[] data = GSON.fromJson(reader, PokemonEntryData[].class);
-            if (data != null) {
-                Set<String> seen = new HashSet<>();
-                for (int i = 0; i < data.length; i++) {
-                    int entryIndex = i;
-                    PokemonEntryData entry = data[i];
-                    Optional<PokemonEntry> parsedEntry = toEntry(entry, familyTag, path, entryIndex);
-                    parsedEntry.ifPresent(pokemonEntry -> {
-                        String duplicateKey = pokemonEntry.species() + "|" + pokemonEntry.weight()
-                                + "|" + pokemonEntry.minLevel() + "|" + pokemonEntry.maxLevel();
-                        if (!seen.add(duplicateKey)) {
-                            warnPoolEntry(path.toString(), entryIndex, pokemonEntry.species(),
-                                    "duplicate identical entry", "skipped");
-                            return;
-                        }
-                        parsed.add(pokemonEntry);
-                    });
-                }
+            JsonArray data = readPoolArray(reader);
+            Set<String> seen = new HashSet<>();
+            for (int i = 0; i < data.size(); i++) {
+                int entryIndex = i;
+                Optional<PokemonEntry> parsedEntry = parsePoolEntry(data.get(i), path, entryIndex)
+                        .flatMap(entry -> toEntry(entry, familyTag, path, entryIndex));
+                parsedEntry.ifPresent(pokemonEntry -> {
+                    String duplicateKey = pokemonEntry.species() + "|" + pokemonEntry.weight()
+                            + "|" + pokemonEntry.minLevel() + "|" + pokemonEntry.maxLevel();
+                    if (!seen.add(duplicateKey)) {
+                        warnPoolEntry(path.toString(), entryIndex, pokemonEntry.species(),
+                                "duplicate identical entry", "skipped");
+                        return;
+                    }
+                    parsed.add(pokemonEntry);
+                });
             }
         } catch (IOException | JsonParseException e) {
             LOGGER.warn("Failed to read pokemon pool from {}", path, e);
@@ -996,6 +995,43 @@ public final class PokemonPoolService {
             LOGGER.warn("[Rustling Spots] Pokemon pool warning: file={}, reason=empty pool or no valid entries, action=kept loaded as empty", path);
         }
         return parsed;
+    }
+
+    private static JsonArray readPoolArray(Reader reader) {
+        JsonElement root = GSON.fromJson(reader, JsonElement.class);
+        if (root == null) {
+            return new JsonArray();
+        }
+        if (!root.isJsonArray()) {
+            throw new JsonParseException("expected a JSON array of Pokemon entries");
+        }
+        return root.getAsJsonArray();
+    }
+
+    private static Optional<PokemonEntryData> parsePoolEntry(JsonElement element, Path path, int index) {
+        if (element == null || !element.isJsonObject()) {
+            warnPoolEntry(path.toString(), index, null, "entry must be a JSON object", "skipped");
+            return Optional.empty();
+        }
+
+        String species = null;
+        JsonElement speciesElement = element.getAsJsonObject().get("species");
+        if (speciesElement != null && speciesElement.isJsonPrimitive()) {
+            species = speciesElement.getAsString();
+        }
+
+        try {
+            PokemonEntryData data = GSON.fromJson(element, PokemonEntryData.class);
+            if (data == null) {
+                warnPoolEntry(path.toString(), index, species, "entry could not be parsed", "skipped");
+                return Optional.empty();
+            }
+            return Optional.of(data);
+        } catch (JsonParseException e) {
+            String reason = "invalid entry data: " + e.getMessage();
+            warnPoolEntry(path.toString(), index, species, reason, "skipped");
+            return Optional.empty();
+        }
     }
 
     private static Optional<PokemonEntry> toEntry(PokemonEntryData data, String familyTag, Path path, int index) {

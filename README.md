@@ -177,7 +177,7 @@ This repository is a multi-loader project built around Architectury:
 └── example_datapacks/
 ```
 
-The current source tree targets **Rustling Spots 5.0**, **Minecraft 1.21.1**, **Java 21**, and **Cobblemon 1.8.0+**.
+The current source tree targets **Rustling Spots 5.1**, **Minecraft 1.21.1**, **Java 21**, and **Cobblemon 1.8.0+**.
 
 Existing v4.x pool files remain in place when upgrading. Rustling keeps its historical species aliases, validates entries again after Cobblemon has loaded or reloaded its 1.8 species registry, and skips only invalid entries without replacing customized pools.
 
@@ -201,10 +201,7 @@ Loader-specific artifacts are generated from the Fabric and NeoForge modules und
 
 ## Changelog
 
-Loader-specific v5.0 changelogs are available here:
-
-- [Fabric changelog](./CHANGELOG-FABRIC.md)
-- [NeoForge changelog](./CHANGELOG-NEOFORGE.md)
+See the [Rustling Spots changelog](./CHANGELOG.md) for the unified release history across Fabric and NeoForge.
 
 ## License
 

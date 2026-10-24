@@ -353,7 +353,7 @@ data/<namespace>/rustling_spots/pokemon_families/<nom>.json
 
 | Champ | Obligatoire | Description |
 | --- | --- | --- |
-| `species` | Oui | Espece Cobblemon a invoquer. |
+| `species` | Oui | Espece Cobblemon a invoquer. Pour un fakemon d'addon, utilisez son identifiant namespacé enregistré, par exemple `myaddon:my_fakemon`. |
 | `weight` | Oui | Poids de selection. Doit etre > `0`. |
 | `min_level` | Non | Niveau minimum possible. |
 | `max_level` | Non | Niveau maximum possible. |
@@ -430,6 +430,8 @@ alors le spot doit pointer vers :
 - les especes vides sont ignorees
 - les niveaux sont bornes par la config du mod au moment du spawn
 - si aucune entree valide n'existe pour la famille, aucun Pokemon n'est invoque
+- les entrees invalides sont signalees dans le journal serveur avec le fichier source et l'index (base a zero) ; les autres entrees valides du fichier restent utilisables
+- si le registre d'especes Cobblemon n'est pas encore pret, la validation complete des especes/formes est differee ; une entree invalide est signalee puis ignoree si elle est selectionnee pour un spawn
 
 ---
 

@@ -87,7 +87,7 @@ These values are field initializers from the current configuration classes. Nest
 
 - `enable = true`
 - `encounter_chance = 0.35D`
-- `default_shiny_chance = 0.05D`
+- `default_shiny_chance = 0.01D`
 - `min_level = 5`
 - `max_level = 75`
 - `typed_spawn_rules = true`
@@ -153,8 +153,7 @@ Loader JARs are normally written under the corresponding `build/libs` directory.
 
 ## Documentation index
 
-- [CHANGELOG-FABRIC.md](../CHANGELOG-FABRIC.md)
-- [CHANGELOG-NEOFORGE.md](../CHANGELOG-NEOFORGE.md)
+- [CHANGELOG.md](../CHANGELOG.md)
 - [README.md](../README.md)
 - [docs/custom-spot-definitions-guide-en.md](../docs/custom-spot-definitions-guide-en.md)
 - [docs/custom-spot-definitions-guide.md](../docs/custom-spot-definitions-guide.md)

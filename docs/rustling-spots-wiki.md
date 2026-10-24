@@ -101,7 +101,7 @@ A spot is not limited to a simple Pokémon spawn.
 | Pokémon encounter chance | `0.35` or 35% |
 | Pokémon minimum level | `5` |
 | Pokémon maximum level | `75` |
-| Default Pokémon shiny chance | `0.05` or 5% |
+| Default Pokémon shiny chance | `0.01` or 1% |
 | Multiple reward rolls | disabled by default |
 
 A shiny spot forces a shiny reward outcome where supported and can announce the discovery to the server when global announcements are enabled.
@@ -286,14 +286,17 @@ Official example datapack downloads:
 
 ---
 
-## v5.0 Documentation Notes
+## v5.1 Documentation Notes
 
-The v5.0 documentation reflects the current source and changelogs, including:
+The v5.1 documentation reflects the current source and changelogs, including:
 
+- a 1% default Pokémon shiny chance and one-time migration of the old 5% shiny setting
 - shared Fabric/NeoForge Pokemon creation through Cobblemon's property API
 - namespaced addon species and Cobblemon property/form support
+- Fakemon registered by Cobblemon addons are supported through their namespaced species IDs
 - pool revalidation after Cobblemon species reloads, including species supplied by addons/datapacks
 - v4.x pool preservation, historical compatibility aliases and deduplicated invalid-entry warnings
+- malformed pool entries are skipped individually with file and entry diagnostics, leaving other valid entries available
 - authoritative Rustling level and shiny rolls with no natural spawn-cap usage
 - custom `visual_family` support
 - historical `grass` fallback when `visual_family` is missing or invalid
@@ -302,10 +305,7 @@ The v5.0 documentation reflects the current source and changelogs, including:
 - corrected Total Spots statistics with multiple reward rolls
 - corrected custom spot documentation for the supported shiny chance field
 
-For loader-specific release notes:
-
-- [Fabric changelog](../CHANGELOG-FABRIC.md)
-- [NeoForge changelog](../CHANGELOG-NEOFORGE.md)
+For the unified release history across Fabric and NeoForge, see the [Rustling Spots changelog](../CHANGELOG.md).
 
 ---
 

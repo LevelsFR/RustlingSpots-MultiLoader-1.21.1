@@ -3,7 +3,12 @@ package net.levelscraft7.rustlingspots.spot;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsPokemonConfig;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsServerConfig;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsSoundConfig;
+import net.levelscraft7.rustlingspots.common.RustlingSpotsCommon;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -160,7 +165,24 @@ public final class SpotRewardResolver {
     }
 
     private static void playInteractionParticles(ServerLevel level, RustlingSpot spot) {
-        level.sendParticles(ParticleTypes.HAPPY_VILLAGER, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 1.0, spot.getPosition().getZ() + 0.5, 14, 0.3, 0.3, 0.3, 0.01);
+        String particleName = switch (spot.getFamily()) {
+            case GRASS -> "grass_burst";
+            case LEAVES -> "leaves_burst";
+            case WATER -> "water_burst";
+            case CAVE -> "cave_burst";
+            case SAND -> "sand_burst";
+            case SNOW -> "snow_burst";
+            case NETHERFLAMME -> "netherflamme_burst";
+            case SOULFLAME -> "soulflame_burst";
+            case FLYING -> "flying_burst";
+        };
+        ResourceLocation particleId = ResourceLocation.fromNamespaceAndPath(RustlingSpotsCommon.MOD_ID, particleName);
+        ParticleType<?> particleType = BuiltInRegistries.PARTICLE_TYPE.getOptional(particleId).orElse(null);
+        SimpleParticleType particle = particleType instanceof SimpleParticleType simple
+                ? simple
+                : ParticleTypes.HAPPY_VILLAGER;
+        level.sendParticles(particle, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 0.5,
+                spot.getPosition().getZ() + 0.5, 18, 0.25, 0.12, 0.25, 0.04);
     }
 
     private static void resolveEmptySpot(ServerPlayer player, RandomSource random, RustlingPlayerPreferences.MessagePreferences messagePreferences) {

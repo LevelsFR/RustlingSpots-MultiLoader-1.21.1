@@ -1,8 +1,13 @@
 package net.levelscraft7.rustlingspots.config;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -11,6 +16,8 @@ import java.nio.file.Path;
  */
 public final class RustlingSpotsPokemonConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(RustlingSpotsPokemonConfig.class);
+    private static final int CONFIG_VERSION = 1;
+    private static final double PREVIOUS_DEFAULT_SHINY_CHANCE = 0.05D;
 
     public static Pokemon POKEMON = Pokemon.defaults();
     public static Pokemon POKEMON_SPAWN;
@@ -20,8 +27,37 @@ public final class RustlingSpotsPokemonConfig {
     private RustlingSpotsPokemonConfig() {}
 
     public static void load() {
+        int storedConfigVersion = readStoredConfigVersion();
         POKEMON = ConfigIO.loadOrCreate(PATH, Pokemon.defaults(), Pokemon.class);
+        if (storedConfigVersion < CONFIG_VERSION) {
+            if (usesPreviousDefaultShinyChance(POKEMON)) {
+                POKEMON.default_shiny_chance = 0.01D;
+            }
+            POKEMON.config_version = CONFIG_VERSION;
+            save();
+        }
         POKEMON_SPAWN = POKEMON;
+    }
+
+    private static int readStoredConfigVersion() {
+        if (!Files.exists(PATH)) {
+            return CONFIG_VERSION;
+        }
+
+        try (Reader reader = Files.newBufferedReader(PATH, StandardCharsets.UTF_8)) {
+            JsonElement json = JsonParser.parseReader(reader);
+            if (json == null || !json.isJsonObject()) {
+                return CONFIG_VERSION;
+            }
+            JsonElement version = json.getAsJsonObject().get("config_version");
+            return version == null ? 0 : version.getAsInt();
+        } catch (Exception e) {
+            return CONFIG_VERSION;
+        }
+    }
+
+    private static boolean usesPreviousDefaultShinyChance(Pokemon pokemon) {
+        return Double.compare(pokemon.default_shiny_chance, PREVIOUS_DEFAULT_SHINY_CHANCE) == 0;
     }
 
     public static void save() {
@@ -34,9 +70,10 @@ public final class RustlingSpotsPokemonConfig {
     }
 
     public static final class Pokemon {
+        public int config_version = CONFIG_VERSION;
         public boolean enable = true;
         public double encounter_chance = 0.35D;
-        public double default_shiny_chance = 0.05D;
+        public double default_shiny_chance = 0.01D;
         public int min_level = 5;
         public int max_level = 75;
         public boolean typed_spawn_rules = true;

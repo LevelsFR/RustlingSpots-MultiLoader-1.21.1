@@ -353,7 +353,7 @@ data/<namespace>/rustling_spots/pokemon_families/<name>.json
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `species` | Yes | Cobblemon species to spawn. |
+| `species` | Yes | Cobblemon species to spawn. For addon Fakemon, use the registered namespaced ID, such as `myaddon:my_fakemon`. |
 | `weight` | Yes | Selection weight. Must be > `0`. |
 | `min_level` | No | Minimum possible level. |
 | `max_level` | No | Maximum possible level. |
@@ -430,6 +430,8 @@ then the spot should point to:
 - empty species values are ignored
 - levels are bounded by the mod config at spawn time
 - if no valid entry exists for the family, no Pokemon will spawn
+- invalid entries are reported in the server log with the source file and zero-based entry index; other valid entries in that file remain available
+- if Cobblemon's species registry is not ready, full species/form validation is deferred; invalid entries are reported and skipped if selected for spawning
 
 ---
 

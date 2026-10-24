@@ -101,7 +101,7 @@ Un spot ne se limite pas à un simple spawn Pokémon.
 | Chance de rencontre Pokémon | `0.35`, soit 35 % |
 | Niveau Pokémon minimum | `5` |
 | Niveau Pokémon maximum | `75` |
-| Chance shiny Pokémon par défaut | `0.05`, soit 5 % |
+| Chance shiny Pokémon par défaut | `0.01`, soit 1 % |
 | Récompenses multiples | désactivées par défaut |
 
 Un spot shiny force un résultat shiny lorsque le type de récompense le permet et peut annoncer la découverte au serveur si les annonces globales sont activées.
@@ -286,14 +286,17 @@ Téléchargements officiels du datapack exemple :
 
 ---
 
-## Notes de documentation v5.0
+## Notes de documentation v5.1
 
-Cette documentation v5.0 reflète le code source et les changelogs actuels, notamment :
+Cette documentation v5.1 reflète le code source et les changelogs actuels, notamment :
 
+- chance shiny Pokémon par défaut de 1 % et migration unique de l'ancien réglage shiny à 5 %
 - création des Pokémon partagée entre Fabric et NeoForge via l'API de propriétés Cobblemon
 - support des espèces d'addons avec namespace et de la syntaxe de propriétés/formes Cobblemon
+- prise en charge des fakemon enregistrés par les addons Cobblemon via leur identifiant d'espèce namespacé
 - revalidation des pools après le rechargement des espèces Cobblemon, y compris celles fournies par des addons/datapacks
 - conservation des pools v4.x, des alias historiques et déduplication des avertissements d'entrées invalides
+- les entrées de pool mal formées sont ignorées individuellement avec le fichier et l'index fautifs, les autres entrées valides restent disponibles
 - niveau et résultat shiny de Rustling appliqués de façon autoritaire, sans utilisation de la limite de spawn naturel
 - support de `visual_family` pour les spots custom
 - fallback historique `grass` si `visual_family` est absent ou invalide
@@ -302,10 +305,7 @@ Cette documentation v5.0 reflète le code source et les changelogs actuels, nota
 - correction du compteur Total Spots avec plusieurs récompenses
 - correction de la documentation custom spot concernant le champ de chance shiny supporté
 
-Changelogs spécifiques aux loaders :
-
-- [Fabric changelog](../CHANGELOG-FABRIC.md)
-- [NeoForge changelog](../CHANGELOG-NEOFORGE.md)
+Pour l'historique commun aux versions Fabric et NeoForge, voir le [changelog Rustling Spots](../CHANGELOG.md).
 
 ---
 
