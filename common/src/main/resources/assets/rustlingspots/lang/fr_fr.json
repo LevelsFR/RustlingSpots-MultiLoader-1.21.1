@@ -17,6 +17,7 @@
   "message.rustlingspots.origin.grass": "L'herbe bruissante",
   "message.rustlingspots.origin.sand": "Le sable mouvant",
   "message.rustlingspots.origin.water": "L'eau fremissante",
+  "message.rustlingspots.origin.underwater": "Le spot sous-marin",
   "message.rustlingspots.origin.snow": "La neige tourbillonnante",
   "message.rustlingspots.origin.leaves": "Les feuilles bruissantes",
   "message.rustlingspots.origin.cave": "Les ombres de la caverne",
@@ -73,10 +74,17 @@
   "config.rustlingspots.family.grass": "Taux des spots d'herbe",
   "config.rustlingspots.family.sand": "Taux des spots de sable",
   "config.rustlingspots.family.water": "Taux des spots d'eau",
+  "config.rustlingspots.family.underwater": "Taux des spots sous-marins",
   "config.rustlingspots.family.snow": "Taux des spots de neige",
   "config.rustlingspots.family.leaves": "Taux des spots de feuilles",
   "config.rustlingspots.family.cave": "Taux des spots de grotte",
   "config.rustlingspots.family.netherflamme": "Taux des flammes du Nether",
   "config.rustlingspots.family.soulflame": "Taux des flammes des ames",
-  "config.rustlingspots.family.flying": "Taux des spots volants"
+  "config.rustlingspots.family.flying": "Taux des spots volants",
+  "config.rustlingspots.option.outside_water_underwater_chance": "Chance de recherche sous-marine depuis la surface (0-1)",
+  "message.rustlingspots.origin.end": "La résonance de l’End",
+  "config.rustlingspots.family.end": "Taux des spots de l’End",
+  "message.rustlingspots.origin.geode": "La résonance de la géode",
+  "config.rustlingspots.family.geode": "Taux d'apparition des géodes"
+
 }

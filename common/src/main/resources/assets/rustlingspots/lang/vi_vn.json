@@ -17,6 +17,7 @@
   "message.rustlingspots.origin.grass": "Đám cỏ xào xạc",
   "message.rustlingspots.origin.sand": "Cát dịch chuyển",
   "message.rustlingspots.origin.water": "Mặt nước gợn sóng",
+  "message.rustlingspots.origin.underwater": "Điểm bong bóng dưới nước",
   "message.rustlingspots.origin.snow": "Lớp tuyết bay",
   "message.rustlingspots.origin.leaves": "Tán lá xào xạc",
   "message.rustlingspots.origin.cave": "Hang động tối",
@@ -25,5 +26,12 @@
   "message.rustlingspots.origin.flying": "Luồng khí xoáy",
   "message.rustlingspots.empty.1": "Tiếng xào xạc tan biến... nhưng không có gì ở đó.",
   "message.rustlingspots.empty.2": "Bạn kiểm tra rất kĩ, nhưng nơi này trống rỗng.",
-  "message.rustlingspots.empty.3": "Thứ gì đó vừa ở đây, nhưng giờ nó đã biến mất."
+  "message.rustlingspots.empty.3": "Thứ gì đó vừa ở đây, nhưng giờ nó đã biến mất.",
+  "config.rustlingspots.family.underwater": "Tỉ lệ xuất hiện điểm dưới nước",
+  "config.rustlingspots.option.outside_water_underwater_chance": "Tỉ lệ tìm kiếm dưới nước khi người chơi ở ngoài nước (0-1)",
+  "message.rustlingspots.origin.end": "Âm vang của The End",
+  "config.rustlingspots.family.end": "Tỉ lệ xuất hiện điểm The End",
+  "message.rustlingspots.origin.geode": "Âm vang của hốc tinh thể",
+  "config.rustlingspots.family.geode": "Tỉ lệ xuất hiện điểm hốc tinh thể"
+
 }

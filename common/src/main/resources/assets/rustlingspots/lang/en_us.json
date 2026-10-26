@@ -17,6 +17,7 @@
   "message.rustlingspots.origin.grass": "The rustling grass",
   "message.rustlingspots.origin.sand": "The shifting sand",
   "message.rustlingspots.origin.water": "The rippling water",
+  "message.rustlingspots.origin.underwater": "The bubbling underwater spot",
   "message.rustlingspots.origin.snow": "The drifting snow",
   "message.rustlingspots.origin.leaves": "The rustling leaves",
   "message.rustlingspots.origin.cave": "The shadowy cave",
@@ -73,10 +74,17 @@
   "config.rustlingspots.family.grass": "Grass spawn rate",
   "config.rustlingspots.family.sand": "Sand spawn rate",
   "config.rustlingspots.family.water": "Water spawn rate",
+  "config.rustlingspots.family.underwater": "Underwater spawn rate",
   "config.rustlingspots.family.snow": "Snow spawn rate",
   "config.rustlingspots.family.leaves": "Leaves spawn rate",
   "config.rustlingspots.family.cave": "Cave spawn rate",
   "config.rustlingspots.family.netherflamme": "Nether flame spawn rate",
   "config.rustlingspots.family.soulflame": "Soul flame spawn rate",
-  "config.rustlingspots.family.flying": "Flying spawn rate"
+  "config.rustlingspots.family.flying": "Flying spawn rate",
+  "config.rustlingspots.option.outside_water_underwater_chance": "Chance to search underwater while out of water (0-1)",
+  "message.rustlingspots.origin.end": "The End's resonance",
+  "config.rustlingspots.family.end": "End spawn rate",
+  "message.rustlingspots.origin.geode": "The geode's resonance",
+  "config.rustlingspots.family.geode": "Geode spawn rate"
+
 }

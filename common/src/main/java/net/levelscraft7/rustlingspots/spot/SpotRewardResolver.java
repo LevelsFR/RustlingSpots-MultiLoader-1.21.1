@@ -165,16 +165,45 @@ public final class SpotRewardResolver {
     }
 
     private static void playInteractionParticles(ServerLevel level, RustlingSpot spot) {
+        if (spot.getFamily() == RustlingSpotFamily.UNDERWATER) {
+            level.sendParticles(ParticleTypes.BUBBLE, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 0.5,
+                    spot.getPosition().getZ() + 0.5, 28, 0.22, 0.35, 0.22, 0.045);
+            return;
+        }
+        if (spot.getFamily() == RustlingSpotFamily.END) {
+            level.sendParticles(ParticleTypes.PORTAL, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 0.35,
+                    spot.getPosition().getZ() + 0.5, 28, 0.24, 0.28, 0.24, 0.12);
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 0.35,
+                    spot.getPosition().getZ() + 0.5, 12, 0.2, 0.22, 0.2, 0.045);
+            level.sendParticles(ParticleTypes.DRAGON_BREATH, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 0.25,
+                    spot.getPosition().getZ() + 0.5, 5, 0.12, 0.08, 0.12, 0.01);
+            level.sendParticles(ParticleTypes.END_ROD, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 0.5,
+                    spot.getPosition().getZ() + 0.5, 7, 0.22, 0.24, 0.22, 0.015);
+            return;
+        }
+        if (spot.getFamily() == RustlingSpotFamily.GEODE) {
+            level.sendParticles(ParticleTypes.ENCHANT, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 0.35,
+                    spot.getPosition().getZ() + 0.5, 20, 0.1, 0.12, 0.1, 0.004);
+            level.sendParticles(ParticleTypes.WITCH, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 0.35,
+                    spot.getPosition().getZ() + 0.5, 5, 0.08, 0.08, 0.08, 0.002);
+            level.sendParticles(ParticleTypes.END_ROD, spot.getPosition().getX() + 0.5, spot.getPosition().getY() + 0.5,
+                    spot.getPosition().getZ() + 0.5, 4, 0.08, 0.1, 0.08, 0.003);
+            return;
+        }
+
         String particleName = switch (spot.getFamily()) {
             case GRASS -> "grass_burst";
             case LEAVES -> "leaves_burst";
             case WATER -> "water_burst";
+            case UNDERWATER -> "water_burst";
             case CAVE -> "cave_burst";
             case SAND -> "sand_burst";
             case SNOW -> "snow_burst";
             case NETHERFLAMME -> "netherflamme_burst";
             case SOULFLAME -> "soulflame_burst";
             case FLYING -> "flying_burst";
+            case END -> "end_burst";
+            case GEODE -> "cave_burst";
         };
         ResourceLocation particleId = ResourceLocation.fromNamespaceAndPath(RustlingSpotsCommon.MOD_ID, particleName);
         ParticleType<?> particleType = BuiltInRegistries.PARTICLE_TYPE.getOptional(particleId).orElse(null);

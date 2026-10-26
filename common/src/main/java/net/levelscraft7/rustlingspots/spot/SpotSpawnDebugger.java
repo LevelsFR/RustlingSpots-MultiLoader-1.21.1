@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -54,12 +55,19 @@ public final class SpotSpawnDebugger {
         }
 
         RandomSource random = RandomSource.create(level.getSeed() ^ player.getUUID().getMostSignificantBits() ^ level.getGameTime());
+        boolean playerSubmerged = player.isEyeInFluid(net.minecraft.tags.FluidTags.WATER);
+        boolean playerUnderground = SpotSpawner.isUndergroundPlayer(level, player);
+        boolean underwaterSearch = playerSubmerged
+                || random.nextDouble() < RustlingSpotsServerConfig.GENERAL.outsideWaterUnderwaterChance();
+        boolean allowUndergroundSurfaceFallback = playerUnderground
+                && SpotSpawner.shouldAllowUndergroundSurfaceFallback(random);
         EnumMap<Reason, Integer> counts = new EnumMap<>(Reason.class);
         List<Attempt> details = new ArrayList<>();
         Attempt firstSpawnable = null;
 
         for (int attempt = 0; attempt < attempts; attempt++) {
-            Attempt result = inspectAttempt(level, player, random, minDistance, radius, attempt);
+            Attempt result = inspectAttempt(level, player, random, minDistance, radius, playerSubmerged, underwaterSearch,
+                    playerUnderground, allowUndergroundSurfaceFallback, attempt);
             counts.merge(result.reason(), 1, Integer::sum);
             details.add(result);
             if (firstSpawnable == null && result.reason() == Reason.SPAWNABLE) {
@@ -70,14 +78,17 @@ public final class SpotSpawnDebugger {
         return new Report(false, null, attempts, radius, minDistance, Map.copyOf(counts), List.copyOf(details), firstSpawnable);
     }
 
-    private static Attempt inspectAttempt(ServerLevel level, ServerPlayer player, RandomSource random, int minDistance, int maxDistance, int attempt) {
+    private static Attempt inspectAttempt(ServerLevel level, ServerPlayer player, RandomSource random, int minDistance, int maxDistance,
+                                          boolean playerSubmerged, boolean underwaterSearch, boolean playerUnderground,
+                                          boolean allowUndergroundSurfaceFallback, int attempt) {
         double angle = random.nextDouble() * (Math.PI * 2.0D);
         double dist = minDistance + random.nextDouble() * (maxDistance - minDistance);
 
         int x = player.blockPosition().getX() + (int) Math.round(Math.cos(angle) * dist);
         int z = player.blockPosition().getZ() + (int) Math.round(Math.sin(angle) * dist);
 
-        Candidate candidate = findCandidate(level, x, z);
+        Candidate candidate = findCandidate(level, player, random, x, z, minDistance, maxDistance,
+                playerSubmerged, underwaterSearch, playerUnderground, allowUndergroundSurfaceFallback);
         if (candidate.pos() == null) {
             return new Attempt(attempt, null, candidate.reason(), candidate.detail());
         }
@@ -99,17 +110,19 @@ public final class SpotSpawnDebugger {
             return new Attempt(attempt, candidate.pos(), Reason.UNLOADED_CHUNK, "candidate chunk became unloaded before template resolution");
         }
 
-        BlockPos groundPos = candidate.pos().below();
-        BlockState groundState = chunk.getBlockState(groundPos);
-        Optional<RustlingSpotFamily> builtInFamily = RustlingSpotFamily.fromSurfaceBlock(groundState, level, groundPos);
-        boolean hasCustomMatch = !CustomSpotDefinitionRegistry.matching(level, groundPos, groundState).isEmpty();
-        Optional<SpotSpawnTemplate> selected = SpotSpawnSelectionService.resolve(level, groundPos, groundState, random);
+        boolean underwater = chunk.getBlockState(candidate.pos()).is(Blocks.WATER);
+        BlockPos definitionPos = underwater ? candidate.pos() : candidate.pos().below();
+        BlockState definitionBlock = chunk.getBlockState(definitionPos);
+        Optional<RustlingSpotFamily> builtInFamily = RustlingSpotFamily.fromSurfaceBlock(definitionBlock, level, definitionPos);
+        boolean hasCustomMatch = !CustomSpotDefinitionRegistry.matching(level, definitionPos, definitionBlock).isEmpty();
+        Optional<SpotSpawnTemplate> selected = SpotSpawnSelectionService.resolve(level, definitionPos, definitionBlock, random);
         if (selected.isEmpty()) {
             Reason reason = builtInFamily.isPresent() || hasCustomMatch
                     ? Reason.SPAWN_RATE_ROLL_FAILED
                     : Reason.NO_SPOT_DEFINITION;
             return new Attempt(attempt, candidate.pos(), reason,
-                    "block=" + blockId(groundState) + ", biome=" + biomeId(level, groundPos));
+                    "block=" + blockId(definitionBlock) + ", biome=" + biomeId(level, definitionPos)
+                            + (candidate.detail().isBlank() ? "" : "; " + candidate.detail()));
         }
 
         double minDist = RustlingSpotsServerConfig.GENERAL.minDistanceBetweenSpots();
@@ -117,22 +130,77 @@ public final class SpotSpawnDebugger {
         if (!RustlingSpotService.MANAGER.isFarEnough(level.dimension(), minDistanceSq, candidate.pos())) {
             double nearestSq = RustlingSpotService.MANAGER.nearestDistanceSq(level.dimension(), candidate.pos());
             return new Attempt(attempt, candidate.pos(), Reason.TOO_CLOSE_TO_SPOT,
-                    "nearestSq=" + format(nearestSq) + ", requiredSq=" + format(minDistanceSq));
+                    "nearestSq=" + format(nearestSq) + ", requiredSq=" + format(minDistanceSq)
+                            + (candidate.detail().isBlank() ? "" : "; " + candidate.detail()));
         }
 
         return new Attempt(attempt, candidate.pos(), Reason.SPAWNABLE,
-                "spotId=" + selected.get().spotId() + ", block=" + blockId(groundState) + ", biome=" + biomeId(level, groundPos));
+                "spotId=" + selected.get().spotId() + ", block=" + blockId(definitionBlock) + ", biome="
+                        + biomeId(level, definitionPos) + ", playerUnderground=" + playerUnderground
+                        + (candidate.detail().isBlank() ? "" : "; " + candidate.detail()));
     }
 
-    private static Candidate findCandidate(ServerLevel level, int x, int z) {
+    private static Candidate findCandidate(ServerLevel level, ServerPlayer player, RandomSource random,
+                                           int x, int z, int minDistance, int maxDistance,
+                                           boolean playerSubmerged, boolean underwaterSearch, boolean playerUnderground,
+                                           boolean allowUndergroundSurfaceFallback) {
+        if (underwaterSearch) {
+            BlockPos underwater = SpotSpawner.findRandomUnderwaterCandidate(level, player, x, z, random, minDistance, maxDistance);
+            if (underwater != null) {
+                return Candidate.found(underwater);
+            }
+            if (playerSubmerged) {
+                return Candidate.rejected(Reason.NO_SURFACE_OR_CAVE_MATCH, "no submerged source-water position in range");
+            }
+        }
+
+        SpotSpawner.GeodeSearchResult geodeSearch = null;
+        if (playerUnderground || SpotSpawner.shouldSearchGeode(random)) {
+            geodeSearch = SpotSpawner.searchRandomGeodeCandidates(level, player, random, minDistance, maxDistance);
+            if (geodeSearch.position() != null) {
+                return Candidate.found(geodeSearch.position(), "candidateSource=geode; " + geodeSearch.summary());
+            }
+        }
+
+        if (playerUnderground) {
+            BlockPos cave = SpotSpawner.findRandomCaveCandidate(level, player, x, z, random, minDistance, maxDistance);
+            if (cave != null) {
+                String detail = geodeSearch == null
+                        ? "geodeSearch=skipped"
+                        : geodeSearch.summary() + "; caveFallback=used";
+                return Candidate.found(cave, detail);
+            }
+            if (!allowUndergroundSurfaceFallback) {
+                return Candidate.rejected(Reason.NO_SURFACE_OR_CAVE_MATCH,
+                        "no cave candidate in range; underground surface fallback was not selected"
+                                + (geodeSearch == null ? "; geodeSearch=skipped" : "; " + geodeSearch.summary()));
+            }
+        }
+
+        if (SpotSpawner.shouldSearchCanopy(random)) {
+            BlockPos canopy = SpotSpawner.findRandomCanopyCandidate(level, x, z, random);
+            if (canopy != null) {
+                return Candidate.found(canopy);
+            }
+        }
+
         Candidate surface = findSurfaceUsingHeightmap(level, x, z);
         if (surface.pos() != null || surface.reason() == Reason.UNLOADED_CHUNK) {
             return surface;
         }
 
-        return level.dimension().equals(Level.OVERWORLD)
-                ? findCaveAirAboveConfiguredBlock(level, x, z)
-                : findAnyValidAirAboveConfiguredBlock(level, x, z);
+        if (playerUnderground) {
+            return Candidate.rejected(Reason.NO_SURFACE_OR_CAVE_MATCH,
+                    "no cave or fallback surface candidate in range"
+                            + (geodeSearch == null ? "; geodeSearch=skipped" : "; " + geodeSearch.summary()));
+        }
+        if (level.dimension().equals(Level.OVERWORLD)) {
+            BlockPos cave = SpotSpawner.findRandomCaveCandidate(level, player, x, z, random, minDistance, maxDistance);
+            return cave == null
+                    ? Candidate.rejected(Reason.NO_SURFACE_OR_CAVE_MATCH, "no cave air above configured block")
+                    : Candidate.found(cave, geodeSearch == null ? "geodeSearch=skipped" : geodeSearch.summary() + "; caveFallback=used");
+        }
+        return findAnyValidAirAboveConfiguredBlock(level, x, z);
     }
 
     private static Candidate findSurfaceUsingHeightmap(ServerLevel level, int x, int z) {
@@ -158,30 +226,6 @@ public final class SpotSpawnDebugger {
         }
 
         return Candidate.rejected(Reason.NO_SURFACE_OR_CAVE_MATCH, "surface block=" + blockId(groundState));
-    }
-
-    private static Candidate findCaveAirAboveConfiguredBlock(ServerLevel level, int x, int z) {
-        LevelChunk chunk = getLoadedChunk(level, x, z);
-        if (chunk == null) {
-            return Candidate.rejected(Reason.UNLOADED_CHUNK, "chunk=" + (x >> 4) + "," + (z >> 4));
-        }
-
-        int minY = level.getMinBuildHeight();
-        int maxY = Math.min(level.getMaxBuildHeight() - 2, level.getSeaLevel() - 5);
-        for (int y = maxY; y >= minY; y--) {
-            BlockPos groundPos = new BlockPos(x, y, z);
-            BlockPos airPos = groundPos.above();
-            if (!chunk.getBlockState(airPos).isAir()) {
-                continue;
-            }
-
-            BlockState groundState = chunk.getBlockState(groundPos);
-            Optional<RustlingSpotFamily> family = RustlingSpotFamily.fromSurfaceBlock(groundState, level, groundPos);
-            if (family.isPresent() && family.get() == RustlingSpotFamily.CAVE) {
-                return Candidate.found(airPos);
-            }
-        }
-        return Candidate.rejected(Reason.NO_SURFACE_OR_CAVE_MATCH, "no cave air above configured block");
     }
 
     private static Candidate findAnyValidAirAboveConfiguredBlock(ServerLevel level, int x, int z) {
@@ -230,6 +274,10 @@ public final class SpotSpawnDebugger {
     private record Candidate(BlockPos pos, Reason reason, String detail) {
         static Candidate found(BlockPos pos) {
             return new Candidate(pos, Reason.SPAWNABLE, "");
+        }
+
+        static Candidate found(BlockPos pos, String detail) {
+            return new Candidate(pos, Reason.SPAWNABLE, detail);
         }
 
         static Candidate rejected(Reason reason, String detail) {

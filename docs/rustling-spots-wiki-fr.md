@@ -1,6 +1,6 @@
 # Wiki Rustling Spots
 
-> **Documentation ciblée :** Rustling Spots **v5.0** pour Minecraft **1.21.1** et Cobblemon **1.8.0+**.
+> **Documentation ciblée :** Rustling Spots **v6.0** pour Minecraft **1.21.1** et Cobblemon **1.8.0+**.
 >
 > English: [rustling-spots-wiki.md](./rustling-spots-wiki.md)
 
@@ -29,21 +29,32 @@ Rustling Spots ne modifie **pas** la génération du monde, ce qui permet de l'a
 
 ### Familles de spots intégrées
 
-Rustling Spots comprend **9 familles intégrées**. Chacune possède sa propre identité visuelle, ses règles de surface, ses particules, ses pools Pokémon et ses pools de loot.
+Rustling Spots comprend **12 familles intégrées**. Chacune possède sa propre identité visuelle, ses règles de surface, ses particules, ses pools Pokémon et ses pools de loot.
 
 | Famille | Surface typique par défaut | Thématique |
 | --- | --- | --- |
 | **Grass** | `grass_block`, `dirt_path`, petites fleurs | Rencontres classiques d'extérieur |
 | **Sand** | `sand`, `red_sand` | Espèces désertiques, fossiles et loot sec |
 | **Water** | Eau source avec espace libre au-dessus | Pokémon aquatiques et récompenses liées à l'eau |
+| **Underwater** | Eau source sous la surface, à toute profondeur | Pokémon capables de respirer et nager sous l'eau, signalés par des bulles |
 | **Snow** | `snow`, `snow_block`, `powder_snow` | Rencontres et récompenses glaciales |
-| **Leaves** | Blocs taggés `#leaves` | Rencontres forestières et spots légers |
+| **Leaves** | Blocs taggés `#leaves`, y compris les poches d'air dans les canopées | Rencontres forestières, spots dans les arbres et spores discrètes |
 | **Cave** | Surfaces de pierre ou de deepslate en grotte | Exploration souterraine et loot minier |
+| **Geode** | Améthyste bourgeonnante exposée dans les géodes souterraines | Rencontres cristallines, carillon d'améthyste et particules vanilla |
 | **Flying** | Air libre sous le ciel | Rencontres aériennes et zones en hauteur |
 | **NetherFlamme** | `netherrack` ou lave source | Feu et récompenses thématiques du Nether |
 | **SoulFlame** | `soul_sand`, `soul_soil` | Ambiance sombre, spectrale et liée aux âmes |
+| **End** | End Stone, End Stone Bricks et Purpur dans l'End vanilla | Rencontres cosmiques, particules de portail vanilla et étincelles d'End Rod |
 
 Chaque famille peut être activée, désactivée ou rééquilibrée via configuration.
+
+La recherche de spots **Underwater** est systématique lorsque les yeux du joueur sont sous l'eau. Elle est aussi tentée lors de 10 % des tentatives de spawn normales par défaut lorsque le joueur est hors de l'eau; les propriétaires du serveur peuvent régler cette probabilité de 0 à 100 % dans les paramètres généraux. Si aucun emplacement sous-marin ne convient, la recherche de canopée, de surface ou de grotte continue. Le spot peut se trouver dans n'importe quel bloc d'eau source immergé à portée, sans bande de profondeur fixe. Le pool par défaut contient 126 Pokémon dont les assets vérifiés dans Cobblemon 1.8.3 permettent de respirer et nager sous l'eau, y compris les 64 espèces amphibies. Ces spots affichent des bulles et n'ont pas l'ombre plate des spots de surface.
+
+Les spots **End** apparaissent uniquement dans la dimension vanilla de l'End. Ils peuvent se poser sur de l'End Stone, des briques d'End Stone ou du Purpur lorsque le sol est sûr; les vérifications normales rejettent les emplacements au-dessus du vide. L'animation reprend les deux impulsions ascendantes du spot Grass, avec une ascension plus marquée des particules vanilla de téléportation Enderman (`PORTAL`), de portail inversé évoquant le chorus (`REVERSE_PORTAL`), de souffle du dragon (`DRAGON_BREATH`) et des étincelles d'End Rod. Les spots End affichent la même ombre douce que les autres familles.
+
+Les spots **Geode** apparaissent dans les géodes souterraines de l'Overworld, au-dessus d'améthyste bourgeonnante exposée avec assez d'espace libre. Ce bloc vanilla impossible à déplacer ancre les spots dans les géodes générées. L'animation reprend les deux impulsions ascendantes du spot Grass avec des particules d'enchantement vanilla, accompagnées de quelques particules Witch et End Rod mieux réparties autour du spot. La famille possède son pool de Pokémon minéraux, le carillon d'améthyste et des récompenses liées aux cristaux, ainsi que la même ombre douce que les autres familles.
+
+Quand le joueur explore sous terre dans l'Overworld, le mod recherche une géode à chaque tentative de spawn et privilégie le spot **Geode** s'il en trouve une à portée. Le spot **Cave** sert de repli si aucune géode convenable n'est trouvée. Les spots de surface et de canopée restent possibles comme solution de repli occasionnelle (10 % des recherches souterraines).
 
 ---
 
@@ -313,4 +324,4 @@ Pour l'historique commun aux versions Fabric et NeoForge, voir le [changelog Rus
 
 **Rustling Spots** apporte à Cobblemon des événements temporaires d'exploration inspirés de la Génération 5.
 
-Les joueurs découvrent des spots visibles dans le monde et interagissent avec eux pour déclencher des rencontres Pokémon ou des récompenses thématiques. Avec **9 familles intégrées**, une configuration JSON, des outils admin, des statistiques joueur, des spots shiny et vides, ainsi qu'un système datapack complet pour les définitions custom, le mod ajoute une vraie boucle d'exploration configurable sans modifier la génération du monde.
+Les joueurs découvrent des spots visibles dans le monde et interagissent avec eux pour déclencher des rencontres Pokémon ou des récompenses thématiques. Avec **12 familles intégrées**, une configuration JSON, des outils admin, des statistiques joueur, des spots shiny et vides, ainsi qu'un système datapack complet pour les définitions custom, le mod ajoute une vraie boucle d'exploration configurable sans modifier la génération du monde.

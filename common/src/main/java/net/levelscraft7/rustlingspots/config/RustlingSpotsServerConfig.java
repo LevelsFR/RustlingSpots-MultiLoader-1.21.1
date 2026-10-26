@@ -44,6 +44,7 @@ public final class RustlingSpotsServerConfig {
 
         // New simplified spawning model
         public int player_spot_radius = 200;
+        public double outside_water_underwater_chance = 0.10D;
         public int max_spots_per_player = 8;
         public int max_spots_total = 64;
         public boolean allow_cobblemon_raid_den_dimensions = true;
@@ -71,6 +72,9 @@ public final class RustlingSpotsServerConfig {
         public double interactionVerticalAllowance() { return interaction_vertical_allowance; }
 
         public int playerSpotRadius() { return player_spot_radius; }
+        public double outsideWaterUnderwaterChance() {
+            return Math.max(0.0D, Math.min(1.0D, outside_water_underwater_chance));
+        }
         public int maxSpotsPerPlayer() { return max_spots_per_player; }
         public int maxSpotsTotal() { return max_spots_total; }
         public boolean allowCobblemonRaidDenDimensions() { return allow_cobblemon_raid_den_dimensions; }

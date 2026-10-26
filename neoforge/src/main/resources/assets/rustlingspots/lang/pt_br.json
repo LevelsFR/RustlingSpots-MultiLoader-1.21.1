@@ -17,6 +17,7 @@
   "message.rustlingspots.origin.grass": "A grama sussurrante",
   "message.rustlingspots.origin.sand": "A areia movente",
   "message.rustlingspots.origin.water": "A agua ondulante",
+  "message.rustlingspots.origin.underwater": "O ponto borbulhante subaquático",
   "message.rustlingspots.origin.snow": "A neve em movimento",
   "message.rustlingspots.origin.leaves": "As folhas sussurrantes",
   "message.rustlingspots.origin.cave": "A caverna sombria",
@@ -25,5 +26,12 @@
   "message.rustlingspots.origin.flying": "O ar girando",
   "message.rustlingspots.empty.1": "O sussurro desaparece... mas nao havia nada.",
   "message.rustlingspots.empty.2": "Voce verifica o ponto com cuidado, mas ele esta vazio.",
-  "message.rustlingspots.empty.3": "Algo estava aqui ha um segundo, mas o ponto ja esta vazio."
+  "message.rustlingspots.empty.3": "Algo estava aqui ha um segundo, mas o ponto ja esta vazio.",
+  "config.rustlingspots.family.underwater": "Taxa de surgimento subaquático",
+  "config.rustlingspots.option.outside_water_underwater_chance": "Chance de procurar debaixo da agua estando fora dela (0-1)",
+  "message.rustlingspots.origin.end": "A ressonância do End",
+  "config.rustlingspots.family.end": "Taxa de surgimento do End",
+  "message.rustlingspots.origin.geode": "A ressonância da geoda",
+  "config.rustlingspots.family.geode": "Taxa de surgimento de geodos"
+
 }

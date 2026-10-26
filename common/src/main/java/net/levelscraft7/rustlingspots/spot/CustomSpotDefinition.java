@@ -5,6 +5,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -47,7 +48,7 @@ public final class CustomSpotDefinition {
         if (!dimensions.contains(level.dimension())) {
             return false;
         }
-        if (blocks.stream().noneMatch(matcher -> matcher.matches(groundState, level, groundPos))) {
+        if (blocks.stream().noneMatch(matcher -> matcher.matches(groundState, level, groundPos, template.visualFamily()))) {
             return false;
         }
         return biomes.stream().anyMatch(matcher -> matcher.matches(level, groundPos));
@@ -79,12 +80,19 @@ public final class CustomSpotDefinition {
             return new BlockMatcher(resolved, null);
         }
 
-        public boolean matches(BlockState state, Level level, BlockPos pos) {
+        public boolean matches(BlockState state, Level level, BlockPos pos, RustlingSpotFamily visualFamily) {
             if (tag != null) {
                 return state.is(tag);
             }
             if (block == Blocks.WATER) {
-                return state.is(block) && state.getFluidState().isSource() && level.getBlockState(pos.above()).isAir();
+                if (!state.is(block) || !state.getFluidState().isSource()) {
+                    return false;
+                }
+                BlockState above = level.getBlockState(pos.above());
+                if (visualFamily == RustlingSpotFamily.UNDERWATER) {
+                    return above.getFluidState().is(FluidTags.WATER) && above.getFluidState().isSource();
+                }
+                return above.isAir();
             }
             if (block == Blocks.LAVA) {
                 return state.is(block) && state.getFluidState().isSource() && level.getBlockState(pos.above()).isAir();

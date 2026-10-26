@@ -48,6 +48,9 @@ public final class RustlingSpotRenderer {
         for (RustlingSpotClientHandler.ClientSpot spot : RustlingSpotClientHandler.activeSpots()) {
             BlockPos pos = spot.getPos();
             RustlingSpotFamily family = spot.getFamily();
+            if (family == RustlingSpotFamily.UNDERWATER) {
+                continue;
+            }
             double opacity = family == RustlingSpotFamily.WATER
                     ? RustlingSpotsClientConfig.VISUALS.waterShadowOpacity()
                     : baseOpacity;

@@ -694,6 +694,9 @@ public final class RustlingSpotFamilyConfigService {
             RustlingSpotFamily.WATER, defaultFamilyJson(List.of(
                     "minecraft:water"
             )),
+            RustlingSpotFamily.UNDERWATER, defaultFamilyJson(List.of(
+                    "minecraft:water"
+            )),
             RustlingSpotFamily.SNOW, defaultFamilyJson(List.of(
                     "minecraft:snow",
                     "minecraft:snow_block",
@@ -822,11 +825,14 @@ public final class RustlingSpotFamilyConfigService {
             for (RustlingSpotFamily family : RustlingSpotFamily.values()) {
                 Path path = FAMILY_DIR.resolve(family.name().toLowerCase() + ".json");
                 if (Files.notExists(path)) {
-                    Files.writeString(path, DEFAULT_FAMILIES.getOrDefault(family, "{}"));
+                    Files.writeString(path, defaultFamilyJsonFor(family));
                 }
                 Path tagPath = BIOME_TAG_DIR.resolve(family.name().toLowerCase() + ".json");
                 if (Files.notExists(tagPath)) {
-                    TagFile file = new TagFile(false, DEFAULT_BIOME_HINTS.getOrDefault(family, List.of()));
+                    List<String> biomeHints = family == RustlingSpotFamily.UNDERWATER
+                            ? DEFAULT_BIOME_HINTS.getOrDefault(RustlingSpotFamily.WATER, List.of())
+                            : DEFAULT_BIOME_HINTS.getOrDefault(family, List.of());
+                    TagFile file = new TagFile(false, biomeHints);
                     Files.writeString(tagPath, GSON.toJson(file));
                 }
             }
@@ -874,7 +880,15 @@ public final class RustlingSpotFamilyConfigService {
         }
 
         boolean matches(BlockState state, Level level, BlockPos pos, RustlingSpotFamily family) {
-            boolean blockMatches = blockMatchers.stream().anyMatch(matcher -> matcher.matches(state, level, pos));
+            if (family == RustlingSpotFamily.END && !level.dimension().equals(Level.END)) {
+                return false;
+            }
+            if (family == RustlingSpotFamily.GEODE
+                    && (!level.dimension().equals(Level.OVERWORLD) || level.canSeeSkyFromBelowWater(pos.above()))) {
+                return false;
+            }
+
+            boolean blockMatches = blockMatchers.stream().anyMatch(matcher -> matcher.matches(state, level, pos, family));
             if (!blockMatches) {
                 return false;
             }
@@ -919,13 +933,20 @@ public final class RustlingSpotFamilyConfigService {
             return new BlockMatcher(resolved, null);
         }
 
-        boolean matches(BlockState state, Level level, BlockPos pos) {
+        boolean matches(BlockState state, Level level, BlockPos pos, RustlingSpotFamily family) {
             if (tag != null) {
                 return state.is(tag);
             }
 
             if (block == Blocks.WATER) {
-                return state.is(block) && state.getFluidState().isSource() && level.getBlockState(pos.above()).isAir();
+                if (!state.is(block) || !state.getFluidState().isSource()) {
+                    return false;
+                }
+                BlockState above = level.getBlockState(pos.above());
+                if (family == RustlingSpotFamily.UNDERWATER) {
+                    return above.is(Blocks.WATER) && above.getFluidState().isSource();
+                }
+                return above.isAir();
             }
             if (block == Blocks.LAVA) {
                 return state.is(block) && state.getFluidState().isSource() && level.getBlockState(pos.above()).isAir();
@@ -976,6 +997,25 @@ public final class RustlingSpotFamilyConfigService {
         FamilyFile file = new FamilyFile();
         file.surface_blocks = blocks;
         return GSON.toJson(file);
+    }
+
+    private static String defaultFamilyJsonFor(RustlingSpotFamily family) {
+        if (family == RustlingSpotFamily.GEODE) {
+            return defaultFamilyJson(List.of(
+                    "minecraft:budding_amethyst"
+            ));
+        }
+        if (family == RustlingSpotFamily.END) {
+            return defaultFamilyJson(List.of(
+                    "minecraft:end_stone",
+                    "minecraft:end_stone_bricks",
+                    "minecraft:purpur_block",
+                    "minecraft:purpur_pillar",
+                    "minecraft:purpur_slab",
+                    "minecraft:purpur_stairs"
+            ));
+        }
+        return DEFAULT_FAMILIES.getOrDefault(family, "{}");
     }
 
     private static List<String> readTagValues(RustlingSpotFamily family) {

@@ -1,6 +1,6 @@
 # Rustling Spots Wiki
 
-> **Documentation target:** Rustling Spots **v5.0** for Minecraft **1.21.1** and Cobblemon **1.8.0+**.
+> **Documentation target:** Rustling Spots **v6.0** for Minecraft **1.21.1** and Cobblemon **1.8.0+**.
 >
 > Français: [rustling-spots-wiki-fr.md](./rustling-spots-wiki-fr.md)
 
@@ -29,21 +29,32 @@ Rustling Spots does **not** modify world generation, making it safe to add to ex
 
 ### Built-in spot families
 
-Rustling Spots includes **9 built-in families**. Each family has its own visual identity, surface rules, particles, Pokémon pools and loot pools.
+Rustling Spots includes **12 built-in families**. Each family has its own visual identity, surface rules, particles, Pokémon pools and loot pools.
 
 | Family | Typical default surface | Theme |
 | --- | --- | --- |
 | **Grass** | `grass_block`, `dirt_path`, small flowers | General outdoor encounters |
 | **Sand** | `sand`, `red_sand` | Desert species, fossils and dry loot |
 | **Water** | Source water with open space above | Aquatic Pokémon and water rewards |
+| **Underwater** | Submerged source water at any depth | Underwater-capable Pokémon, marked by rising bubbles |
 | **Snow** | `snow`, `snow_block`, `powder_snow` | Ice-themed encounters and rewards |
-| **Leaves** | Blocks tagged `#leaves` | Forest encounters and lightweight spots |
+| **Leaves** | Blocks tagged `#leaves`, including clear pockets in tree canopies | Forest encounters, canopy spots and a subtle spore cue |
 | **Cave** | Stone or deepslate cave surfaces | Underground encounters and mining loot |
+| **Geode** | Exposed budding amethyst inside underground geodes | Crystal-themed encounters with amethyst chimes and vanilla particle sparkles |
 | **Flying** | Open air beneath the sky | Flying encounters and high-altitude themes |
 | **NetherFlamme** | `netherrack` or source lava | Fire and Nether-themed rewards |
 | **SoulFlame** | `soul_sand`, `soul_soil` | Dark, spectral and soul-themed encounters |
+| **End** | End Stone, End Stone Bricks and Purpur in the vanilla End | Cosmic encounters with rising vanilla portal particles and End Rod sparkles |
 
 Each family can be enabled, disabled or rebalanced through configuration.
+
+Underwater searches always run when a player's eyes are submerged. They also run on 10% of regular spawn attempts by default while the player is out of water; server owners can tune this chance from 0 to 100% in General settings. If no underwater position is available, normal canopy, surface and cave searches continue. The spot position can use any submerged source-water block in range, without a fixed depth band. Its default pool contains 126 Pokémon with underwater breathing and swimming assets verified against Cobblemon 1.8.3, including all 64 amphibious species. Underwater spots render bubbles instead of the flat shadow used by surface spots.
+
+End spots are restricted to the vanilla End dimension. They can rest on End Stone, End Stone Bricks or Purpur blocks when there is safe ground beneath them; otherwise, normal surface checks reject the position above the void. Their animation reuses Grass's two rising pulses with a stronger upward drift for vanilla Enderman teleport (`PORTAL`), chorus-like reverse portal (`REVERSE_PORTAL`), dragon-breath (`DRAGON_BREATH`) and End Rod particles. End spots render the same soft ground shadow as the other spot families.
+
+Geode spots are found in underground Overworld geodes on exposed Budding Amethyst with room above it. This unmovable vanilla block anchors the spot to generated geodes. Their animation reuses Grass's two rising pulses with vanilla enchanting-table particles, plus a small number of Witch and End Rod accents spread around the spot. The family uses its own mineral-themed Pokémon pool, amethyst chimes and amethyst-themed rewards, and renders the same soft ground shadow as the other spot families.
+
+When a player explores underground in the Overworld, the mod searches for a geode on every spawn attempt and prioritizes a Geode spot when one is in range. Cave spots are the fallback when no suitable geode is found. Surface and canopy spots remain possible as an occasional fallback (10% of underground searches).
 
 ---
 
@@ -313,4 +324,4 @@ For the unified release history across Fabric and NeoForge, see the [Rustling Sp
 
 **Rustling Spots** brings temporary Gen 5-inspired exploration events to Cobblemon.
 
-Players discover visible spots in the world and interact with them to trigger Pokémon encounters or themed rewards. With **9 built-in families**, JSON configuration, admin tools, player statistics, shiny and empty spots, and a complete datapack system for custom definitions, the mod adds a configurable exploration loop without modifying world generation.
+Players discover visible spots in the world and interact with them to trigger Pokémon encounters or themed rewards. With **12 built-in families**, JSON configuration, admin tools, player statistics, shiny and empty spots, and a complete datapack system for custom definitions, the mod adds a configurable exploration loop without modifying world generation.

@@ -28,7 +28,7 @@ Rustling Spots does **not** modify world generation, making it safe to add to ex
 
 - Dynamic temporary encounters during exploration
 - Cobblemon-focused Pokémon encounters and themed rewards
-- **9 built-in spot families** with separate surfaces, visuals and pools
+- **12 built-in spot families** with separate surfaces, visuals and pools
 - Fully configurable server, client, family, Pokémon and sound settings
 - Configurable shiny spots and global shiny announcements
 - Optional empty spots and multiple reward rolls
@@ -50,12 +50,15 @@ Rustling Spots does **not** modify world generation, making it safe to add to ex
 | **Grass** | Grass, paths and small flowers | General outdoor encounters |
 | **Sand** | Sand and red sand | Desert species, fossils and dry loot |
 | **Water** | Source water with open space above | Aquatic Pokémon and water rewards |
+| **Underwater** | Submerged source water at any depth | More likely while diving; the default 10% outside-water search chance is configurable |
 | **Snow** | Snow, snow blocks and powder snow | Ice-themed encounters and rewards |
-| **Leaves** | Blocks tagged as leaves | Forest encounters and lightweight spots |
+| **Leaves** | Blocks tagged as leaves, including clear pockets in tree canopies | Forest encounters, canopy spots and a subtle spore cue |
 | **Cave** | Stone and deepslate cave surfaces | Underground encounters and mining loot |
+| **Geode** | Exposed budding amethyst inside underground geodes | Crystal-themed encounters, amethyst chimes and vanilla particle sparkles |
 | **Flying** | Open air beneath the sky | Flying encounters and high-altitude themes |
 | **NetherFlamme** | Netherrack or source lava | Fire and Nether-themed rewards |
 | **SoulFlame** | Soul sand and soul soil | Dark, spectral and soul-themed encounters |
+| **End** | End Stone, End Stone Bricks and Purpur in the End | Cosmic encounters, rising vanilla portal particles and End Rod sparkles |
 
 Each family can be independently enabled, disabled or rebalanced through configuration.
 
@@ -177,7 +180,7 @@ This repository is a multi-loader project built around Architectury:
 └── example_datapacks/
 ```
 
-The current source tree targets **Rustling Spots 5.1**, **Minecraft 1.21.1**, **Java 21**, and **Cobblemon 1.8.0+**.
+The current source tree targets **Rustling Spots 6.0**, **Minecraft 1.21.1**, **Java 21**, and **Cobblemon 1.8.0+**.
 
 Existing v4.x pool files remain in place when upgrading. Rustling keeps its historical species aliases, validates entries again after Cobblemon has loaded or reloaded its 1.8 species registry, and skips only invalid entries without replacing customized pools.
 

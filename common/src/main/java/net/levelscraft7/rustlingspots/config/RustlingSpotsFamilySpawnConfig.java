@@ -49,12 +49,15 @@ public final class RustlingSpotsFamilySpawnConfig {
             case GRASS -> 1.0D;
             case SAND -> 1.0D;
             case WATER -> 0.6D;
+            case UNDERWATER -> 0.6D;
             case SNOW -> 1.0D;
             case LEAVES ->0.7D;
             case CAVE -> 1.0D;
             case NETHERFLAMME -> 0.6D;
             case SOULFLAME -> 1.0D;
             case FLYING -> 0.25D;
+            case END -> 0.6D;
+            case GEODE -> 1.0D;
         };
     }
 

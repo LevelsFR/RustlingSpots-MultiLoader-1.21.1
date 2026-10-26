@@ -95,6 +95,9 @@ public final class RustlingSpotsClothConfigScreen {
         category.addEntry(entries.startIntField(key("player_spot_radius"), draft.playerSpotRadius)
                 .setDefaultValue(defaults.player_spot_radius).setMin(16).setMax(512)
                 .setSaveConsumer(value -> draft.playerSpotRadius = value).build());
+        category.addEntry(entries.startDoubleField(key("outside_water_underwater_chance"), draft.outsideWaterUnderwaterChance)
+                .setDefaultValue(defaults.outside_water_underwater_chance).setMin(0.0D).setMax(1.0D)
+                .setSaveConsumer(value -> draft.outsideWaterUnderwaterChance = value).build());
         category.addEntry(entries.startIntField(key("max_spots_per_player"), draft.maxSpotsPerPlayer)
                 .setDefaultValue(defaults.max_spots_per_player).setMin(1).setMax(256)
                 .setSaveConsumer(value -> draft.maxSpotsPerPlayer = value).build());
@@ -184,9 +187,11 @@ public final class RustlingSpotsClothConfigScreen {
     private static double defaultFamilyRate(RustlingSpotFamily family) {
         return switch (family) {
             case GRASS, SAND, SNOW, CAVE, SOULFLAME -> 1.0D;
-            case WATER, NETHERFLAMME -> 0.6D;
+            case WATER, UNDERWATER, NETHERFLAMME -> 0.6D;
             case LEAVES -> 0.7D;
             case FLYING -> 0.25D;
+            case END -> 0.6D;
+            case GEODE -> 1.0D;
         };
     }
 
@@ -198,6 +203,7 @@ public final class RustlingSpotsClothConfigScreen {
         double interactionRadius;
         double interactionVerticalAllowance;
         int playerSpotRadius;
+        double outsideWaterUnderwaterChance;
         int maxSpotsPerPlayer;
         int maxSpotsTotal;
         boolean allowRaidDenDimensions;
@@ -228,6 +234,7 @@ public final class RustlingSpotsClothConfigScreen {
             interactionRadius = config.interactionRadius();
             interactionVerticalAllowance = config.interactionVerticalAllowance();
             playerSpotRadius = config.playerSpotRadius();
+            outsideWaterUnderwaterChance = config.outsideWaterUnderwaterChance();
             maxSpotsPerPlayer = config.maxSpotsPerPlayer();
             maxSpotsTotal = config.maxSpotsTotal();
             allowRaidDenDimensions = config.allowCobblemonRaidDenDimensions();
@@ -254,6 +261,7 @@ public final class RustlingSpotsClothConfigScreen {
         RustlingServerConfigSnapshot toSnapshot() {
             return new RustlingServerConfigSnapshot(enabled, loggingEnabled, minDistanceBetweenSpots,
                     spotLifetimeTicks, interactionRadius, interactionVerticalAllowance, playerSpotRadius,
+                    outsideWaterUnderwaterChance,
                     maxSpotsPerPlayer, maxSpotsTotal, allowRaidDenDimensions, shinySpotChance,
                     announceShinyGlobally, enableEmptySpots, emptySpotChance, enableMultipleRewardRolls,
                     minRewardRolls, maxRewardRolls, allowMultiplePokemonPerSpot, mixedRewardSpotChance,

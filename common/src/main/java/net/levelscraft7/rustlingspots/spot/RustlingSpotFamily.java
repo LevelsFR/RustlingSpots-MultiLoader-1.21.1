@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Families describe the surface theme for rustling spots.
+ * Families describe the environment theme for rustling spots.
  */
 public enum RustlingSpotFamily {
     GRASS,
@@ -25,7 +25,10 @@ public enum RustlingSpotFamily {
     CAVE,
     NETHERFLAMME,
     SOULFLAME,
-    FLYING;
+    FLYING,
+    UNDERWATER,
+    END,
+    GEODE;
 
     public String serializedName() {
         return name().toLowerCase(Locale.ROOT);
@@ -66,6 +69,9 @@ public enum RustlingSpotFamily {
         FluidState fluid = state.getFluidState();
         if (fluid.isSource() && state.is(Blocks.WATER)) {
             BlockState above = level.getBlockState(pos.above());
+            if (above.is(Blocks.WATER) && above.getFluidState().isSource()) {
+                return Optional.of(UNDERWATER);
+            }
             if (above.isAir()) {
                 return Optional.of(WATER);
             }
@@ -89,6 +95,20 @@ public enum RustlingSpotFamily {
         }
         if (state.is(Blocks.SOUL_SAND) || state.is(Blocks.SOUL_SOIL)) {
             return Optional.of(SOULFLAME);
+        }
+        if (level.dimension().equals(Level.END)
+                && (state.is(Blocks.END_STONE)
+                || state.is(Blocks.END_STONE_BRICKS)
+                || state.is(Blocks.PURPUR_BLOCK)
+                || state.is(Blocks.PURPUR_PILLAR)
+                || state.is(Blocks.PURPUR_SLAB)
+                || state.is(Blocks.PURPUR_STAIRS))) {
+            return Optional.of(END);
+        }
+        if (level.dimension().equals(Level.OVERWORLD)
+                && !level.canSeeSkyFromBelowWater(pos.above())
+                && state.is(Blocks.BUDDING_AMETHYST)) {
+            return Optional.of(GEODE);
         }
         if (level.canSeeSkyFromBelowWater(pos.above()) && level.getBlockState(pos.above()).isAir()) {
             return Optional.of(FLYING);

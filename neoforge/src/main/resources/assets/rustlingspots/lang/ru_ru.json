@@ -17,6 +17,7 @@
   "message.rustlingspots.origin.grass": "Шуршащая трава",
   "message.rustlingspots.origin.sand": "Движущийся песок",
   "message.rustlingspots.origin.water": "Рябящая вода",
+  "message.rustlingspots.origin.underwater": "Подводное место с пузырьками",
   "message.rustlingspots.origin.snow": "Летящий снег",
   "message.rustlingspots.origin.leaves": "Шуршащие листья",
   "message.rustlingspots.origin.cave": "Темная пещера",
@@ -25,5 +26,12 @@
   "message.rustlingspots.origin.flying": "Кружащийся воздух",
   "message.rustlingspots.empty.1": "Шуршание стихает... но там ничего не было.",
   "message.rustlingspots.empty.2": "Ты внимательно проверяешь зону, но она оказывается пустой.",
-  "message.rustlingspots.empty.3": "Что-то было здесь секунду назад, но зона уже пуста."
+  "message.rustlingspots.empty.3": "Что-то было здесь секунду назад, но зона уже пуста.",
+  "config.rustlingspots.family.underwater": "Частота появления подводных точек",
+  "config.rustlingspots.option.outside_water_underwater_chance": "Шанс поиска под водой, когда игрок находится вне воды (0-1)",
+  "message.rustlingspots.origin.end": "Резонанс Края",
+  "config.rustlingspots.family.end": "Частота появления точек Края",
+  "message.rustlingspots.origin.geode": "Резонанс геоды",
+  "config.rustlingspots.family.geode": "Частота появления точек геоды"
+
 }

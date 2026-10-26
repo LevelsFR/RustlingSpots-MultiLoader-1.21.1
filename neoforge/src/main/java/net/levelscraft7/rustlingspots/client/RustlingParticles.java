@@ -32,6 +32,13 @@ public final class RustlingParticles {
         }
 
         RandomSource random = level.getRandom();
+        if (family == RustlingSpotFamily.UNDERWATER) {
+            emitUnderwaterBubbles(level, random, pos, particleOverrides);
+            if (shiny) {
+                emitShinySparkles(level, random, new Vec3(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D));
+            }
+            return;
+        }
 
         double collisionTop = level.getBlockState(pos).getCollisionShape(level, pos).max(Direction.Axis.Y);
         double visualTop = level.getBlockState(pos).getShape(level, pos).max(Direction.Axis.Y);
@@ -52,16 +59,22 @@ public final class RustlingParticles {
                 pos.getZ() + 0.5D
         );
         if (particleOverrides != null && !particleOverrides.isEmpty()) {
-            LeafyBurstProfile leafyProfile = new LeafyBurstProfile(
-                    null,
-                    22, 28,
-                    10, 15,
-                    0.4F, 0.6F,
-                    0.12F, 0.06F,
-                    0.035F, 0.018F,
-                    0.12F, 0.05F
-            );
-            emitConfiguredLeafyBurst(level, random, spotCenter, leafyProfile, particleOverrides, RustlingParticleTypes.GRASS_BURST.get());
+            LeafyBurstProfile leafyProfile = createLeafyBurstProfile(family, null);
+            ParticleOptions fallback = family == RustlingSpotFamily.END
+                    ? ParticleTypes.PORTAL
+                    : family == RustlingSpotFamily.GEODE
+                    ? ParticleTypes.ENCHANT
+                    : RustlingParticleTypes.GRASS_BURST.get();
+            emitConfiguredLeafyBurst(level, random, spotCenter, leafyProfile, particleOverrides, fallback);
+            if (family == RustlingSpotFamily.LEAVES) {
+                emitCanopyPollen(level, random, spotCenter);
+            }
+            if (family == RustlingSpotFamily.END) {
+                emitEndAccent(level, random, spotCenter);
+            }
+            if (family == RustlingSpotFamily.GEODE) {
+                emitGeodeAccent(level, random, spotCenter);
+            }
             if (shiny) {
                 emitShinySparkles(level, random, spotCenter);
             }
@@ -71,37 +84,44 @@ public final class RustlingParticles {
         if (family == RustlingSpotFamily.GRASS
                 || family == RustlingSpotFamily.LEAVES
                 || family == RustlingSpotFamily.WATER
+                || family == RustlingSpotFamily.UNDERWATER
                 || family == RustlingSpotFamily.SAND
                 || family == RustlingSpotFamily.SNOW
                 || family == RustlingSpotFamily.NETHERFLAMME
                 || family == RustlingSpotFamily.SOULFLAME
                 || family == RustlingSpotFamily.FLYING
-                || family == RustlingSpotFamily.CAVE) {
+                || family == RustlingSpotFamily.CAVE
+                || family == RustlingSpotFamily.END
+                || family == RustlingSpotFamily.GEODE) {
 
             ParticleOptions primary = switch (family) {
                 case GRASS -> RustlingParticleTypes.GRASS_BURST.get();
                 case LEAVES -> RustlingParticleTypes.LEAVES_BURST.get();
                 case WATER -> RustlingParticleTypes.WATER_BURST.get();
+                case UNDERWATER -> ParticleTypes.BUBBLE;
                 case CAVE -> RustlingParticleTypes.CAVE_BURST.get();
                 case SAND -> RustlingParticleTypes.SAND_BURST.get();
                 case SNOW -> RustlingParticleTypes.SNOW_BURST.get();
                 case NETHERFLAMME -> RustlingParticleTypes.NETHERFLAMME_BURST.get();
                 case SOULFLAME -> RustlingParticleTypes.SOULFLAME_BURST.get();
                 case FLYING -> RustlingParticleTypes.FLYING_BURST.get();
+                case END -> ParticleTypes.PORTAL;
+                case GEODE -> ParticleTypes.ENCHANT;
                 default -> throw new IllegalStateException("Unexpected family: " + family);
             };
 
-            LeafyBurstProfile leafyProfile = new LeafyBurstProfile(
-                    primary,
-                    22, 28,
-                    10, 15,
-                    0.4F, 0.6F,
-                    0.12F, 0.06F,
-                    0.035F, 0.018F,
-                    0.12F, 0.05F
-            );
+            LeafyBurstProfile leafyProfile = createLeafyBurstProfile(family, primary);
 
             emitLeafyBurst(level, random, spotCenter, leafyProfile);
+            if (family == RustlingSpotFamily.LEAVES) {
+                emitCanopyPollen(level, random, spotCenter);
+            }
+            if (family == RustlingSpotFamily.END) {
+                emitEndAccent(level, random, spotCenter);
+            }
+            if (family == RustlingSpotFamily.GEODE) {
+                emitGeodeAccent(level, random, spotCenter);
+            }
             if (shiny) {
                 emitShinySparkles(level, random, spotCenter);
             }
@@ -109,7 +129,7 @@ public final class RustlingParticles {
         }
 
         BurstProfile profile = switch (family) {
-            case GRASS, LEAVES, WATER, CAVE, SAND, SNOW, NETHERFLAMME, SOULFLAME ->
+            case GRASS, LEAVES, WATER, UNDERWATER, CAVE, SAND, SNOW, NETHERFLAMME, SOULFLAME, END, GEODE ->
                     throw new IllegalStateException("handled above");
             case FLYING -> new BurstProfile(
                     RustlingParticleTypes.FLYING_BURST.get(),
@@ -158,6 +178,77 @@ public final class RustlingParticles {
         }
     }
 
+    private static void emitCanopyPollen(ClientLevel level, RandomSource random, Vec3 center) {
+        for (int i = 0; i < 2; i++) {
+            double x = center.x + (random.nextDouble() - 0.5D) * 0.55D;
+            double y = center.y + 0.15D + random.nextDouble() * 0.65D;
+            double z = center.z + (random.nextDouble() - 0.5D) * 0.55D;
+            double velX = (random.nextDouble() - 0.5D) * 0.004D;
+            double velZ = (random.nextDouble() - 0.5D) * 0.004D;
+            level.addParticle(ParticleTypes.SPORE_BLOSSOM_AIR, x, y, z, velX, -0.002D, velZ);
+        }
+    }
+
+    private static void emitEndAccent(ClientLevel level, RandomSource random, Vec3 center) {
+        for (int i = 0; i < 7; i++) {
+            double angle = random.nextDouble() * Math.PI * 2.0D;
+            double radius = Mth.lerp(random.nextDouble(), 0.12D, 0.4D);
+            double x = center.x + Math.cos(angle) * radius;
+            double z = center.z + Math.sin(angle) * radius;
+            double y = center.y + 0.08D + random.nextDouble() * 0.42D;
+            level.addParticle(ParticleTypes.REVERSE_PORTAL, x, y, z,
+                    (random.nextDouble() - 0.5D) * 0.004D,
+                    0.04D + random.nextDouble() * 0.04D,
+                    (random.nextDouble() - 0.5D) * 0.004D);
+        }
+
+        for (int i = 0; i < 3; i++) {
+            double x = center.x + (random.nextDouble() - 0.5D) * 0.24D;
+            double y = center.y + 0.06D + random.nextDouble() * 0.18D;
+            double z = center.z + (random.nextDouble() - 0.5D) * 0.24D;
+            level.addParticle(ParticleTypes.DRAGON_BREATH, x, y, z,
+                    (random.nextDouble() - 0.5D) * 0.002D,
+                    0.025D + random.nextDouble() * 0.025D,
+                    (random.nextDouble() - 0.5D) * 0.002D);
+        }
+
+        for (int i = 0; i < 8; i++) {
+            double angle = random.nextDouble() * Math.PI * 2.0D;
+            double radius = Mth.lerp(random.nextDouble(), 0.12D, 0.38D);
+            double x = center.x + Math.cos(angle) * radius;
+            double z = center.z + Math.sin(angle) * radius;
+            double y = center.y + 0.18D + random.nextDouble() * 0.42D;
+            level.addParticle(ParticleTypes.END_ROD, x, y, z,
+                    (random.nextDouble() - 0.5D) * 0.004D,
+                    0.04D + random.nextDouble() * 0.06D,
+                    (random.nextDouble() - 0.5D) * 0.004D);
+        }
+    }
+
+    private static void emitGeodeAccent(ClientLevel level, RandomSource random, Vec3 center) {
+        for (int i = 0; i < 3; i++) {
+            double angle = random.nextDouble() * Math.PI * 2.0D;
+            double radius = Mth.lerp(random.nextDouble(), 0.24D, 0.5D);
+            double x = center.x + Math.cos(angle) * radius;
+            double z = center.z + Math.sin(angle) * radius;
+            double y = center.y + 0.08D + random.nextDouble() * 0.24D;
+            level.addParticle(ParticleTypes.END_ROD, x, y, z,
+                    (random.nextDouble() - 0.5D) * 0.001D,
+                    0.008D + random.nextDouble() * 0.012D,
+                    (random.nextDouble() - 0.5D) * 0.001D);
+        }
+
+        for (int i = 0; i < 3; i++) {
+            double x = center.x + (random.nextDouble() - 0.5D) * 0.5D;
+            double y = center.y + 0.06D + random.nextDouble() * 0.16D;
+            double z = center.z + (random.nextDouble() - 0.5D) * 0.5D;
+            level.addParticle(ParticleTypes.WITCH, x, y, z,
+                    (random.nextDouble() - 0.5D) * 0.001D,
+                    0.004D + random.nextDouble() * 0.008D,
+                    (random.nextDouble() - 0.5D) * 0.001D);
+        }
+    }
+
     private record BurstProfile(ParticleOptions primary, int count, float radiusMin, float radiusMax,
                                 float upwardBase, float upwardJitter, ParticleOptions accent) {
     }
@@ -168,7 +259,25 @@ public final class RustlingParticles {
                                      float radiusMin, float radiusMax,
                                      float upwardBase, float upwardJitter,
                                      float horizontalBase, float horizontalJitter,
-                                     float yOffsetBase, float yOffsetJitter) {
+                                     float yOffsetBase, float yOffsetJitter,
+                                     float velocityJitter) {
+    }
+
+    private static LeafyBurstProfile createLeafyBurstProfile(RustlingSpotFamily family, ParticleOptions primary) {
+        return switch (family) {
+            case END -> new LeafyBurstProfile(primary,
+                    22, 28, 10, 15,
+                    0.24F, 0.4F, 0.22F, 0.1F,
+                    0.012F, 0.008F, 0.08F, 0.03F, 0.004F);
+            case GEODE -> new LeafyBurstProfile(primary,
+                    12, 18, 6, 9,
+                    0.22F, 0.52F, 0.03F, 0.02F,
+                    0.003F, 0.002F, 0.06F, 0.12F, 0.001F);
+            default -> new LeafyBurstProfile(primary,
+                    22, 28, 10, 15,
+                    0.4F, 0.6F, 0.12F, 0.06F,
+                    0.035F, 0.018F, 0.12F, 0.05F, 0.01F);
+        };
     }
 
     private static void emitLeafyBurst(ClientLevel level, RandomSource random, Vec3 center, LeafyBurstProfile profile) {
@@ -197,8 +306,8 @@ public final class RustlingParticles {
             double y = center.y + profile.yOffsetBase + random.nextDouble() * profile.yOffsetJitter;
 
             double outward = profile.horizontalBase + random.nextDouble() * profile.horizontalJitter;
-            double velX = Math.cos(angle) * outward + (random.nextDouble() - 0.5D) * 0.01D;
-            double velZ = Math.sin(angle) * outward + (random.nextDouble() - 0.5D) * 0.01D;
+            double velX = Math.cos(angle) * outward + (random.nextDouble() - 0.5D) * profile.velocityJitter;
+            double velZ = Math.sin(angle) * outward + (random.nextDouble() - 0.5D) * profile.velocityJitter;
             double velY = profile.upwardBase + random.nextDouble() * profile.upwardJitter;
 
             level.addParticle(profile.primary, x, y, z, velX, velY, velZ);
@@ -215,11 +324,31 @@ public final class RustlingParticles {
             double y = center.y + profile.yOffsetBase + random.nextDouble() * profile.yOffsetJitter;
 
             double outward = profile.horizontalBase + random.nextDouble() * profile.horizontalJitter;
-            double velX = Math.cos(angle) * outward + (random.nextDouble() - 0.5D) * 0.01D;
-            double velZ = Math.sin(angle) * outward + (random.nextDouble() - 0.5D) * 0.01D;
+            double velX = Math.cos(angle) * outward + (random.nextDouble() - 0.5D) * profile.velocityJitter;
+            double velZ = Math.sin(angle) * outward + (random.nextDouble() - 0.5D) * profile.velocityJitter;
             double velY = profile.upwardBase + random.nextDouble() * profile.upwardJitter;
 
             level.addParticle(pickOverrideParticle(random, particleOverrides, fallback), x, y, z, velX, velY, velZ);
+        }
+    }
+
+    private static void emitUnderwaterBubbles(ClientLevel level, RandomSource random, BlockPos pos,
+                                              List<WeightedParticleReference> particleOverrides) {
+        Vec3 center = new Vec3(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
+        int count = 24 + random.nextInt(13);
+        for (int i = 0; i < count; i++) {
+            double angle = random.nextDouble() * Math.PI * 2.0D;
+            double radius = 0.12D + random.nextDouble() * 0.38D;
+            double x = center.x + Math.cos(angle) * radius;
+            double z = center.z + Math.sin(angle) * radius;
+            double y = center.y - 0.32D + random.nextDouble() * 0.64D;
+            double velX = (random.nextDouble() - 0.5D) * 0.012D;
+            double velZ = (random.nextDouble() - 0.5D) * 0.012D;
+            double velY = 0.025D + random.nextDouble() * 0.065D;
+            ParticleOptions particle = particleOverrides == null || particleOverrides.isEmpty()
+                    ? ParticleTypes.BUBBLE
+                    : pickOverrideParticle(random, particleOverrides, ParticleTypes.BUBBLE);
+            level.addParticle(particle, x, y, z, velX, velY, velZ);
         }
     }
 

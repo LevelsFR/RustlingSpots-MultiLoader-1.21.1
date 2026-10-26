@@ -471,9 +471,6 @@ public final class PokemonPoolService {
   { "species": "vespiquen",   "weight": 2,  "min_level": 25, "max_level": 60 },
 
   { "species": "braviary",    "weight": 2,  "min_level": 40, "max_level": 70 },
-  { "species": "mandibuzz",   "weight": 2,  "min_level": 40, "max_level": 70 },
-  { "species": "bombirdier",  "weight": 2,  "min_level": 35, "max_level": 70 },
-  { "species": "oricorio",    "weight": 2,  "min_level": 25, "max_level": 60 },
   { "species": "chatot",      "weight": 3,  "min_level": 15, "max_level": 40 },
   { "species": "delibird",    "weight": 2,  "min_level": 20, "max_level": 50 },
 
@@ -690,13 +687,13 @@ public final class PokemonPoolService {
                     e("drapion", 2, 35, 65), e("skuntank", 3, 25, 55), e("muk", 3, 25, 55),
                     e("meowth", 7, 1, 22), e("persian", 3, 22, 50),
                     e("rhydon", 4, 30, 60), e("cubone", 7, 1, 25), e("marowak", 3, 25, 55),
-                    e("magcargo", 3, 30, 65), e("orthworm", 3, 20, 55)
+                    e("magcargo", 3, 30, 65), e("orthworm", 3, 20, 55),
+                    e("sandygast", 8, 1, 25), e("palossand", 2, 30, 60)
             );
             case SNOW -> entries(
                     e("sealeo", 5, 22, 50), e("frosmoth", 3, 25, 60),
                     e("prinplup", 4, 18, 45),
                     e("vulpix alolan", 6, 1, 25), e("ninetales alolan", 2, 35, 65),
-                    e("growlithe hisuian", 5, 1, 28), e("arcanine hisuian", 2, 40, 70),
                     e("avalugg hisuian", 2, 35, 65),
                     e("cetoddle", 7, 1, 28), e("cetitan", 2, 35, 70),
                     e("eiscue", 3, 20, 55)
@@ -713,14 +710,15 @@ public final class PokemonPoolService {
                     e("fomantis", 8, 1, 24), e("lurantis", 3, 25, 55),
                     e("tarountula", 9, 1, 18), e("spidops", 4, 18, 45),
                     e("nymble", 9, 1, 20), e("lokix", 4, 20, 50),
-                    e("blipbug", 9, 1, 18), e("dottler", 5, 18, 35), e("orbeetle", 2, 30, 60),
                     e("seedot", 7, 1, 20), e("nuzleaf", 4, 18, 40), e("shiftry", 2, 30, 60),
                     e("dipplin", 2, 30, 60), e("dartrix", 3, 18, 40), e("decidueye", 1, 40, 70),
                     e("trumbeak", 5, 18, 42), e("toucannon", 3, 36, 70),
-                    e("greedent", 4, 20, 45)
+                    e("greedent", 4, 20, 45),
+                    e("slakoth", 8, 1, 20), e("vigoroth", 4, 18, 40), e("slaking", 2, 30, 60)
             );
             case CAVE -> entries(
                     e("crobat", 2, 40, 72), e("golem", 2, 35, 70), e("swoobat", 4, 22, 55),
+                    e("noibat", 8, 1, 28), e("noivern", 2, 40, 70),
                     e("mienfoo", 5, 15, 45), e("golurk", 2, 40, 70), e("glimmora", 2, 35, 65),
                     e("dunsparce", 5, 10, 45), e("dudunsparce", 1, 35, 70),
                     e("loudred", 4, 20, 45), e("exploud", 2, 35, 65), e("carbink", 3, 20, 55),
@@ -734,7 +732,7 @@ public final class PokemonPoolService {
                     e("haunter", 3, 25, 55), e("gengar", 1, 45, 75),
                     e("pawniard", 4, 15, 45), e("bisharp", 2, 35, 65), e("kingambit", 1, 50, 75),
                     e("drapion", 2, 35, 65), e("sandslash", 4, 22, 55), e("paras", 6, 1, 28), e("parasect", 3, 25, 55),
-                    e("skuntank", 3, 25, 55), e("gulpin", 5, 1, 28), e("swalot", 3, 25, 55), e("muk", 3, 25, 55),
+                    e("skuntank", 3, 25, 55), e("muk", 3, 25, 55),
                     e("machop", 6, 1, 28), e("machoke", 3, 25, 55), e("machamp", 1, 40, 70),
                     e("aron", 5, 1, 30), e("lairon", 3, 25, 55), e("aggron", 1, 45, 75),
                     e("larvitar", 2, 20, 45), e("pupitar", 1, 35, 60),
@@ -755,7 +753,7 @@ public final class PokemonPoolService {
                     e("pelipper", 5, 22, 50), e("honchkrow", 2, 35, 70), e("xatu", 4, 18, 40),
                     e("altaria", 2, 35, 60), e("drifloon", 8, 1, 24), e("drifblim", 3, 28, 60),
                     e("yanmega", 3, 28, 60), e("swanna", 4, 22, 50), e("rufflet", 6, 10, 35),
-                    e("vullaby", 6, 10, 35), e("crobat", 3, 40, 72), e("togepi", 5, 1, 25),
+                    e("crobat", 3, 40, 72), e("togepi", 5, 1, 25),
                     e("togekiss", 1, 40, 70), e("squawkabilly", 4, 10, 45),
                     e("gliscor", 2, 40, 75), e("scyther", 3, 20, 55),
                     e("archen", 2, 20, 50), e("archeops", 1, 45, 75),
@@ -782,9 +780,55 @@ public final class PokemonPoolService {
                     e("dusknoir", 1, 45, 75), e("gengar", 1, 45, 75), e("polteageist", 2, 35, 65),
                     e("yamask galarian", 5, 1, 48), e("runerigus", 2, 40, 70),
                     e("zoroark", 2, 35, 70), e("honchkrow", 2, 35, 70),
-                    e("ceruledge", 1, 40, 75), e("claydol", 3, 25, 60), e("golurk", 2, 40, 70)
+                    e("ceruledge", 1, 40, 75), e("claydol", 3, 25, 60), e("golurk", 2, 40, 70),
+                    e("greavard", 8, 1, 30), e("houndstone", 2, 35, 65)
             );
+            case END -> entries(
+                    e("clefairy", 8, 1, 25), e("elgyem", 8, 1, 28), e("bronzor", 8, 1, 28),
+                    e("beldum", 6, 10, 35), e("lunatone", 5, 20, 55), e("solrock", 5, 20, 55),
+                    e("minior", 4, 20, 60), e("clefable", 2, 30, 60), e("beheeyem", 2, 30, 65),
+                    e("metang", 3, 30, 55), e("metagross", 1, 50, 75), e("bronzong", 2, 30, 60)
+            );
+            case GEODE -> entries(
+                    e("geodude", 8, 1, 25), e("roggenrola", 8, 1, 28), e("nacli", 8, 1, 30),
+                    e("nosepass", 6, 10, 35), e("glimmet", 6, 12, 38), e("sableye", 4, 18, 45),
+                    e("carbink", 4, 20, 50), e("boldore", 3, 24, 55), e("lunatone", 3, 25, 55),
+                    e("solrock", 3, 25, 55), e("gigalith", 2, 42, 72), e("glimmora", 2, 38, 68)
+            );
+            case UNDERWATER -> underwaterEntries();
         };
+    }
+
+    private static List<DefaultPokemonEntry> underwaterEntries() {
+        List<DefaultPokemonEntry> result = new ArrayList<>();
+        addEntries(result, 8, 1, 28, """
+                anorith arrokuda barboach binacle carvanha chewtle chinchou clauncher clobbopus corphish dewpider
+                feebas mareanie tentacool
+                finizen finneon froakie goldeen horsea kabuto magikarp mantyke mudkip omanyte oshawott piplup
+                poliwag popplio psyduck quaxly qwilfish remoraid shellder skrelp seel slowpoke sobble spheal
+                squirtle staryu tirtouga totodile tympole wailmer wimpod wooper
+                """);
+        addEntries(result, 5, 18, 55, """
+                alomomola arctovish basculin bruxish dondozo luvdisc relicanth stunfisk tatsugiri veluza wishiwashi
+                """);
+        addEntries(result, 4, 18, 50, """
+                brionne croconaw dewott drizzile frogadier marshtomp palpitoad poliwhirl prinplup quaxwell seadra
+                sealeo wartortle
+                """);
+        addEntries(result, 2, 30, 70, """
+                araquanid armaldo azumarill barbaracle barraskewda basculegion beartic bibarel blastoise carracosta clawitzer
+                clodsire cloyster crawdaunt dewgong dragalge drednaw empoleon feraligatr golduck golisopod gorebyss
+                grapploct greninja gyarados huntail inteleon kabutops kingdra lanturn lumineon mantine milotic toxapex
+                octillery omastar overqwil palafin politoed poliwrath primarina quagsire quaquaval samurott seaking
+                seismitoad sharpedo slowbro slowking starmie swampert tentacruel vaporeon wailord walrein whiscash
+                """);
+        return List.copyOf(result);
+    }
+
+    private static void addEntries(List<DefaultPokemonEntry> target, int weight, int minLevel, int maxLevel, String speciesNames) {
+        for (String species : speciesNames.trim().split("\\s+")) {
+            target.add(e(species, weight, minLevel, maxLevel));
+        }
     }
 
     private static List<DefaultPokemonEntry> entries(DefaultPokemonEntry... entries) {

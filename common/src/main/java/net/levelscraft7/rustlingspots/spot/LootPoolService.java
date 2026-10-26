@@ -295,6 +295,16 @@ public final class LootPoolService {
                   { "item": "cobblemon:exp_candy_xs", "min": 1, "max": 1, "weight": 2 },
                   { "item": "cobblemon:dusk_stone", "min": 1, "max": 1, "weight": 1 }
                 ]
+                """,
+            RustlingSpotFamily.END, """
+                [
+                  { "item": "minecraft:chorus_fruit", "min": 2, "max": 5, "weight": 5 },
+                  { "item": "minecraft:purpur_block", "min": 1, "max": 3, "weight": 3 },
+                  { "item": "minecraft:ender_pearl", "min": 1, "max": 1, "weight": 2 },
+                  { "item": "minecraft:amethyst_shard", "min": 1, "max": 3, "weight": 2 },
+                  { "item": "cobblemon:psychic_gem", "min": 1, "max": 1, "weight": 1 },
+                  { "item": "cobblemon:steel_gem", "min": 1, "max": 1, "weight": 1 }
+                ]
                 """
     );
 
@@ -440,13 +450,30 @@ public final class LootPoolService {
                 Path file = familyPath(family.serializedName());
                 Files.createDirectories(file.getParent());
                 if (Files.notExists(file)) {
-                    String template = DEFAULT_FAMILY_LOOT.getOrDefault(family, "[]");
-                    Files.writeString(file, template);
+                    Files.writeString(file, defaultFamilyLoot(family));
                 }
             }
         } catch (IOException e) {
             LOGGER.warn("Failed to create default loot configuration", e);
         }
+    }
+
+    private static String defaultFamilyLoot(RustlingSpotFamily family) {
+        if (family == RustlingSpotFamily.UNDERWATER) {
+            return DEFAULT_FAMILY_LOOT.getOrDefault(RustlingSpotFamily.WATER, "[]");
+        }
+        if (family == RustlingSpotFamily.GEODE) {
+            return """
+                [
+                  { "item": "minecraft:amethyst_shard", "min": 2, "max": 6, "weight": 6 },
+                  { "item": "minecraft:calcite", "min": 1, "max": 4, "weight": 4 },
+                  { "item": "minecraft:smooth_basalt", "min": 1, "max": 3, "weight": 3 },
+                  { "item": "cobblemon:rock_gem", "min": 1, "max": 1, "weight": 2 },
+                  { "item": "cobblemon:psychic_gem", "min": 1, "max": 1, "weight": 1 }
+                ]
+                """;
+        }
+        return DEFAULT_FAMILY_LOOT.getOrDefault(family, "[]");
     }
 
     private static List<LootEntry> readLootFile(Path path, String label) {

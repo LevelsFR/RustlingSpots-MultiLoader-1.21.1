@@ -18,6 +18,7 @@ public record RustlingServerConfigSnapshot(
         double interactionRadius,
         double interactionVerticalAllowance,
         int playerSpotRadius,
+        double outsideWaterUnderwaterChance,
         int maxSpotsPerPlayer,
         int maxSpotsTotal,
         boolean allowCobblemonRaidDenDimensions,
@@ -61,6 +62,7 @@ public record RustlingServerConfigSnapshot(
                 general.interaction_radius,
                 general.interaction_vertical_allowance,
                 general.player_spot_radius,
+                general.outsideWaterUnderwaterChance(),
                 general.max_spots_per_player,
                 general.max_spots_total,
                 general.allow_cobblemon_raid_den_dimensions,
@@ -91,6 +93,7 @@ public record RustlingServerConfigSnapshot(
         if (!inRange(interactionRadius, 0.5D, 16.0D)) return Optional.of("interaction_radius must be between 0.5 and 16");
         if (!inRange(interactionVerticalAllowance, 0.5D, 16.0D)) return Optional.of("interaction_vertical_allowance must be between 0.5 and 16");
         if (!inRange(playerSpotRadius, 16, 512)) return Optional.of("player_spot_radius must be between 16 and 512");
+        if (!inRange(outsideWaterUnderwaterChance, 0.0D, 1.0D)) return Optional.of("outside_water_underwater_chance must be between 0 and 1");
         if (!inRange(maxSpotsPerPlayer, 1, 256)) return Optional.of("max_spots_per_player must be between 1 and 256");
         if (!inRange(maxSpotsTotal, 1, 2048)) return Optional.of("max_spots_total must be between 1 and 2048");
         if (!inRange(shinySpotChance, 0.0D, 1.0D)) return Optional.of("shiny_spot_chance must be between 0 and 1");
@@ -126,6 +129,7 @@ public record RustlingServerConfigSnapshot(
         general.interaction_radius = interactionRadius;
         general.interaction_vertical_allowance = interactionVerticalAllowance;
         general.player_spot_radius = playerSpotRadius;
+        general.outside_water_underwater_chance = outsideWaterUnderwaterChance;
         general.max_spots_per_player = maxSpotsPerPlayer;
         general.max_spots_total = maxSpotsTotal;
         general.allow_cobblemon_raid_den_dimensions = allowCobblemonRaidDenDimensions;
@@ -169,6 +173,7 @@ public record RustlingServerConfigSnapshot(
         buf.writeDouble(interactionRadius);
         buf.writeDouble(interactionVerticalAllowance);
         buf.writeVarInt(playerSpotRadius);
+        buf.writeDouble(outsideWaterUnderwaterChance);
         buf.writeVarInt(maxSpotsPerPlayer);
         buf.writeVarInt(maxSpotsTotal);
         buf.writeBoolean(allowCobblemonRaidDenDimensions);
@@ -202,6 +207,7 @@ public record RustlingServerConfigSnapshot(
         double interactionRadius = buf.readDouble();
         double interactionVerticalAllowance = buf.readDouble();
         int playerSpotRadius = buf.readVarInt();
+        double outsideWaterUnderwaterChance = buf.readDouble();
         int maxSpotsPerPlayer = buf.readVarInt();
         int maxSpotsTotal = buf.readVarInt();
         boolean allowRaidDenDimensions = buf.readBoolean();
@@ -227,7 +233,8 @@ public record RustlingServerConfigSnapshot(
             rates.put(family, buf.readDouble());
         }
         return new RustlingServerConfigSnapshot(enabled, loggingEnabled, minDistanceBetweenSpots, spotLifetimeTicks,
-                interactionRadius, interactionVerticalAllowance, playerSpotRadius, maxSpotsPerPlayer, maxSpotsTotal,
+                interactionRadius, interactionVerticalAllowance, playerSpotRadius, outsideWaterUnderwaterChance,
+                maxSpotsPerPlayer, maxSpotsTotal,
                 allowRaidDenDimensions, shinySpotChance, announceShiny, enableEmptySpots, emptySpotChance,
                 enableMultipleRolls, minRewardRolls, maxRewardRolls, allowMultiplePokemon, mixedRewardChance,
                 pokemonEnabled, encounterChance, defaultShinyChance, minLevel, maxLevel, typedSpawnRules,

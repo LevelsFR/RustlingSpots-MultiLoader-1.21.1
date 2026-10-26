@@ -17,6 +17,7 @@
   "message.rustlingspots.origin.grass": "沙沙作响的草丛",
   "message.rustlingspots.origin.sand": "流动的沙地",
   "message.rustlingspots.origin.water": "泛起涟漪的水面",
+  "message.rustlingspots.origin.underwater": "冒泡的水下点位",
   "message.rustlingspots.origin.snow": "飘动的雪",
   "message.rustlingspots.origin.leaves": "沙沙作响的树叶",
   "message.rustlingspots.origin.cave": "幽暗的洞穴",
@@ -25,5 +26,12 @@
   "message.rustlingspots.origin.flying": "旋转的气流",
   "message.rustlingspots.empty.1": "沙沙声渐渐消散……但那里什么都没有。",
   "message.rustlingspots.empty.2": "你仔细检查了这个点位，但它是空的。",
-  "message.rustlingspots.empty.3": "刚才这里似乎有什么东西，但现在已经空了。"
+  "message.rustlingspots.empty.3": "刚才这里似乎有什么东西，但现在已经空了。",
+  "config.rustlingspots.family.underwater": "水下点位生成率",
+  "config.rustlingspots.option.outside_water_underwater_chance": "玩家不在水中时进行水下搜索的概率 (0-1)",
+  "message.rustlingspots.origin.end": "末地共鸣",
+  "config.rustlingspots.family.end": "末地点位生成率",
+  "message.rustlingspots.origin.geode": "晶洞共鸣",
+  "config.rustlingspots.family.geode": "晶洞点位生成率"
+
 }

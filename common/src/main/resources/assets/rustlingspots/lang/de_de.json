@@ -17,6 +17,7 @@
   "message.rustlingspots.origin.grass": "Das raschelnde Gras",
   "message.rustlingspots.origin.sand": "Der wandernde Sand",
   "message.rustlingspots.origin.water": "Das kraeuselnde Wasser",
+  "message.rustlingspots.origin.underwater": "Die blubbernde Unterwasserstelle",
   "message.rustlingspots.origin.snow": "Der treibende Schnee",
   "message.rustlingspots.origin.leaves": "Die raschelnden Blaetter",
   "message.rustlingspots.origin.cave": "Die dunkle Hoehle",
@@ -25,5 +26,12 @@
   "message.rustlingspots.origin.flying": "Die wirbelnde Luft",
   "message.rustlingspots.empty.1": "Das Rascheln verschwindet... aber dort war nichts.",
   "message.rustlingspots.empty.2": "Du untersuchst die Stelle sorgfaeltig, aber sie ist leer.",
-  "message.rustlingspots.empty.3": "Vor einem Moment war hier noch etwas, aber der Spot ist schon leer."
+  "message.rustlingspots.empty.3": "Vor einem Moment war hier noch etwas, aber der Spot ist schon leer.",
+  "config.rustlingspots.family.underwater": "Unterwasser-Spawnrate",
+  "config.rustlingspots.option.outside_water_underwater_chance": "Chance für Unterwassersuche außerhalb des Wassers (0-1)",
+  "message.rustlingspots.origin.end": "Die Resonanz des Endes",
+  "config.rustlingspots.family.end": "End-Spawnrate",
+  "message.rustlingspots.origin.geode": "Die Resonanz der Geode",
+  "config.rustlingspots.family.geode": "Geoden-Spawnrate"
+
 }

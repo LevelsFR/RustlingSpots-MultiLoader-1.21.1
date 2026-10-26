@@ -310,6 +310,7 @@ These IDs are reserved:
 rustlingspots:grass
 rustlingspots:sand
 rustlingspots:water
+rustlingspots:underwater
 rustlingspots:snow
 rustlingspots:leaves
 rustlingspots:cave

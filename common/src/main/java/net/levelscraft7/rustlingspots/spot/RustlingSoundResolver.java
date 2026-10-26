@@ -26,7 +26,9 @@ public final class RustlingSoundResolver {
             SoundEvents.AMBIENT_CAVE.value(),
             SoundEvents.FIRE_AMBIENT,
             SoundEvents.SOUL_SAND_STEP,
-            SoundEvents.PHANTOM_FLAP
+            SoundEvents.PHANTOM_FLAP,
+            SoundEvents.ENDERMAN_AMBIENT,
+            SoundEvents.AMETHYST_BLOCK_CHIME
     );
 
     private RustlingSoundResolver() {
@@ -37,12 +39,15 @@ public final class RustlingSoundResolver {
             case GRASS -> 0;
             case SAND -> 1;
             case WATER -> 2;
+            case UNDERWATER -> 2;
             case SNOW -> 3;
             case LEAVES -> 4;
             case CAVE -> 5;
             case NETHERFLAMME -> 6;
             case SOULFLAME -> 7;
             case FLYING -> 8;
+            case END -> 9;
+            case GEODE -> 10;
         };
     }
 

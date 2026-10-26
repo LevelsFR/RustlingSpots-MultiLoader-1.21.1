@@ -17,6 +17,7 @@
   "message.rustlingspots.origin.grass": "The rustling grass",
   "message.rustlingspots.origin.sand": "The shifting sand",
   "message.rustlingspots.origin.water": "The rippling water",
+  "message.rustlingspots.origin.underwater": "The bubbling underwater spot",
   "message.rustlingspots.origin.snow": "The drifting snow",
   "message.rustlingspots.origin.leaves": "The rustling leaves",
   "message.rustlingspots.origin.cave": "The shadowy cave",
@@ -25,5 +26,12 @@
   "message.rustlingspots.origin.flying": "The swirling air",
   "message.rustlingspots.empty.1": "The rustling fades away... but nothing was there.",
   "message.rustlingspots.empty.2": "You check the spot carefully, but it turns out to be empty.",
-  "message.rustlingspots.empty.3": "Something was here a second ago, but the spot is already empty."
+  "message.rustlingspots.empty.3": "Something was here a second ago, but the spot is already empty.",
+  "config.rustlingspots.family.underwater": "Underwater spawn rate",
+  "config.rustlingspots.option.outside_water_underwater_chance": "Chance to search underwater while out of water (0-1)",
+  "message.rustlingspots.origin.end": "The End's resonance",
+  "config.rustlingspots.family.end": "End spawn rate",
+  "message.rustlingspots.origin.geode": "The geode's resonance",
+  "config.rustlingspots.family.geode": "Geode spawn rate"
+
 }
