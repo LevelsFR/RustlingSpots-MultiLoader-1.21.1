@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsFamilySpawnConfig;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsPokemonConfig;
@@ -19,6 +20,7 @@ import net.levelscraft7.rustlingspots.spot.PokemonSpawnResolver;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotCommands;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotFamilyConfigService;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotSyncService;
+import net.levelscraft7.rustlingspots.spot.RustlingSpotSessionState;
 import net.levelscraft7.rustlingspots.spot.RustlingSpotsDatapackReloadService;
 import net.levelscraft7.rustlingspots.spot.SpotSpawner;
 import net.levelscraft7.rustlingspots.spot.SpotRewardResolver;
@@ -68,6 +70,10 @@ public final class RustlingSpotsFabricMod implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             spawner.onServerTick(server);
             ticker.onServerTick(server);
+        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            spawner.clearSessionState();
+            RustlingSpotSessionState.clear();
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->

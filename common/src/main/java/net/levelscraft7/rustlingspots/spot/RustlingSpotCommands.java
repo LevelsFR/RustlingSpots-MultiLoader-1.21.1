@@ -237,8 +237,11 @@ public final class RustlingSpotCommands {
         ResourceLocation ambientSoundId = CustomSpotDefinitionRegistry.get(template.spotId())
                 .flatMap(CustomSpotDefinition::ambientSoundId)
                 .orElse(null);
+        var rewardChances = CustomSpotDefinitionRegistry.get(template.spotId())
+                .flatMap(CustomSpotDefinition::rewardChances)
+                .orElse(null);
         RustlingSpot spot = template.createSpot(id, level.dimension(), pos, level.getGameTime(),
-                variant, shiny, ambientSoundId, 0, null);
+                variant, shiny, ambientSoundId, 0, null, false, 0.0D, true, rewardChances);
         if (!RustlingSpotLifecycleService.add(level, spot)) {
             source.sendFailure(Component.literal("A rustling spot with the generated id already exists."));
             return 0;

@@ -2,6 +2,7 @@ package net.levelscraft7.rustlingspots.spot;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
@@ -71,10 +72,36 @@ public class RustlingSpotManager {
         return totalSpots.get();
     }
 
+    public void clear() {
+        perDimension.clear();
+        totalSpots.set(0);
+    }
+
     public boolean isFarEnough(ResourceKey<Level> dimension, double minDistanceSq, BlockPos position) {
         double searchRadius = Math.sqrt(minDistanceSq);
         for (RustlingSpot existing : nearbySpots(dimension, position, searchRadius)) {
             if (existing.getPosition().distSqr(position) < minDistanceSq) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Applies global spacing to other spots and custom spacing only within the same source. */
+    public boolean isFarEnoughForSource(ResourceKey<Level> dimension, double minDistanceSq,
+                                        ResourceLocation sourceId, double sourceSpacingSq,
+                                        BlockPos position) {
+        double globalRadius = Math.sqrt(Math.max(0.0D, minDistanceSq));
+        double sourceRadius = sourceId == null ? 0.0D : Math.sqrt(Math.max(0.0D, sourceSpacingSq));
+        double searchRadius = Math.max(globalRadius, sourceRadius);
+        for (RustlingSpot existing : nearbySpots(dimension, position, searchRadius)) {
+            boolean sameSource = sourceId != null && existing.isExternal()
+                    && existing.getSourceId().filter(sourceId::equals).isPresent();
+            double requiredDistanceSq = sameSource
+                    ? Math.max(sourceSpacingSq,
+                            existing.getSameSourceSpacingBlocks() * existing.getSameSourceSpacingBlocks())
+                    : minDistanceSq;
+            if (existing.getPosition().distSqr(position) < requiredDistanceSq) {
                 return false;
             }
         }

@@ -26,4 +26,8 @@ public class SpotInteractionBlocker {
         }
         return true;
     }
+
+    public void clear() {
+        blockedUntil.clear();
+    }
 }

@@ -56,7 +56,7 @@ public final class PokemonSpawnResolver {
             return Optional.empty();
         }
 
-        PokemonPoolService.PoolSelection selection = PokemonPoolService.pickRandomSelection(level, spot, random);
+        PokemonPoolService.PoolSelection selection = PokemonPoolService.pickRandomSelection(level, spot, random, player);
         PokemonPoolService.PokemonEntry entry = selection.entry();
         if (entry == null) {
             logDebugSelection(spot, selection, null, 0, null, false);

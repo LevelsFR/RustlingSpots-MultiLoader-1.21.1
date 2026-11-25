@@ -248,7 +248,7 @@ RustlingSpotAddonApi.createSpot(level, position, definitionId, 20 * 60, sourceId
 RustlingSpotAddonApi.registerLifecycleCallback(event -> handle(event));
 ```
 
-Le callback d'interaction existant reste compatible et peut renvoyer `PASS` pour conserver les récompenses Pokémon et loot normales. Consultez le [guide de l'API Addon](./addon-api-guide-fr.md) et le [datapack external-only d'exemple](../example_datapacks/external_only_spot_pack).
+Pour un groupe lié à un événement, passez `RustlingSpotSpawnOptions` avec sa distance entre spots de même source et sa règle de suppression en l'absence de joueurs. Sans suppression anticipée, le spot reste enregistré pendant le déchargement de son chunk jusqu'à son expiration. Une définition peut aussi fournir `reward_chances`; les callbacks de poids adaptent les entrées Pokémon ou items selon le joueur. Les interactions revendiquent le spot une seule fois avant les callbacks et les récompenses, et les spectateurs ne peuvent pas l'activer. Les spots, cooldowns, préférences et caches datapack de la session sont vidés à l'arrêt du serveur; les listeners globaux des addons restent inscrits. Le callback d'interaction existant reste compatible et peut renvoyer `PASS` pour conserver les récompenses normales. Consultez le [guide de l'API Addon](./addon-api-guide-fr.md) et le [datapack external-only d'exemple](../example_datapacks/external_only_spot_pack).
 
 ### Structure d'un datapack
 

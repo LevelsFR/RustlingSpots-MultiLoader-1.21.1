@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import net.levelscraft7.rustlingspots.api.RustlingSpotRewardChances;
 
 import java.util.List;
 import java.util.UUID;
@@ -68,6 +69,15 @@ public record SpotSpawnTemplate(
     public RustlingSpot createSpot(UUID id, ResourceKey<Level> dimension, BlockPos position, long createdTick,
                                    int ambientVariant, boolean shiny, ResourceLocation ambientSoundId,
                                    int lifetimeTicks, ResourceLocation sourceId) {
+        return createSpot(id, dimension, position, createdTick, ambientVariant, shiny, ambientSoundId,
+                lifetimeTicks, sourceId, false, 0.0D, true, null);
+    }
+
+    public RustlingSpot createSpot(UUID id, ResourceKey<Level> dimension, BlockPos position, long createdTick,
+                                   int ambientVariant, boolean shiny, ResourceLocation ambientSoundId,
+                                   int lifetimeTicks, ResourceLocation sourceId, boolean external,
+                                   double sameSourceSpacingBlocks, boolean despawnWhenNoPlayers,
+                                   RustlingSpotRewardChances rewardChances) {
         return new RustlingSpot(
                 id,
                 dimension,
@@ -84,7 +94,11 @@ public record SpotSpawnTemplate(
                 custom,
                 ambientSoundId,
                 lifetimeTicks,
-                sourceId
+                sourceId,
+                external,
+                sameSourceSpacingBlocks,
+                despawnWhenNoPlayers,
+                rewardChances
         );
     }
 }

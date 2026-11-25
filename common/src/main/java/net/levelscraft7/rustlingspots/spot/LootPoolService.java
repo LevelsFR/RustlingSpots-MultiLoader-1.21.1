@@ -4,11 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import dev.architectury.platform.Platform;
+import net.levelscraft7.rustlingspots.api.RustlingSpotAddonApi;
+import net.levelscraft7.rustlingspots.api.RustlingSpotRewardWeightEvent;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsServerConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -38,10 +41,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class LootPoolService {
     private static final Logger LOGGER = LoggerFactory.getLogger(LootPoolService.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Path BASE = Platform.getConfigFolder().resolve("rustlingspots");
-    private static final Path LOOT_DIR = BASE.resolve("loot");
-    private static final Path GLOBAL_LOOT_FILE = LOOT_DIR.resolve("global_loot.json");
-    private static final Path FAMILY_DIR = LOOT_DIR.resolve("families");
+    private static Path lootDir() {
+        return Platform.getConfigFolder().resolve("rustlingspots").resolve("loot");
+    }
+
+    private static Path globalLootFile() {
+        return lootDir().resolve("global_loot.json");
+    }
+
+    private static Path familyDir() {
+        return lootDir().resolve("families");
+    }
     private static final String DATAPACK_DIRECTORY = "rustling_spots/loot_families";
     private static final AtomicBoolean LOADED = new AtomicBoolean(false);
     private static final Map<String, List<LootEntry>> POOLS = new LinkedHashMap<>();
@@ -363,7 +373,16 @@ public final class LootPoolService {
         }
     }
 
+    public static void clearDatapackSession() {
+        DATAPACK_POOLS.clear();
+        DATAPACK_FAMILIES.clear();
+    }
+
     public static ItemStack pickLoot(String family, RandomSource random) {
+        return pickLoot(family, random, null, null);
+    }
+
+    public static ItemStack pickLoot(String family, RandomSource random, ServerPlayer player, RustlingSpot spot) {
         ensureLoaded();
         String familyKey = family != null ? normalizeFamilyKey(family) : null;
         List<LootEntry> pool = familyKey != null
@@ -376,23 +395,51 @@ public final class LootPoolService {
             return ItemStack.EMPTY;
         }
 
-        int totalWeight = pool.stream().mapToInt(LootEntry::weight).sum();
-        if (totalWeight <= 0) {
+        if (player == null || spot == null || !RustlingSpotAddonApi.hasRewardWeightModifiers()) {
+            int totalWeight = pool.stream().mapToInt(LootEntry::weight).sum();
+            if (totalWeight <= 0) {
+                return ItemStack.EMPTY;
+            }
+
+            int roll = random.nextInt(totalWeight);
+            int accumulator = 0;
+            for (LootEntry entry : pool) {
+                accumulator += entry.weight();
+                if (roll < accumulator) {
+                    return createStack(entry, random);
+                }
+            }
             return ItemStack.EMPTY;
         }
 
-        int roll = random.nextInt(totalWeight);
-        int accumulator = 0;
-        for (LootEntry entry : pool) {
-            accumulator += entry.weight();
+        int[] weights = new int[pool.size()];
+        long totalWeight = 0L;
+        for (int index = 0; index < pool.size(); index++) {
+            LootEntry entry = pool.get(index);
+            weights[index] = RustlingSpotAddonApi.modifyRewardWeight(player, spot,
+                    RustlingSpotRewardWeightEvent.Type.ITEM,
+                    BuiltInRegistries.ITEM.getKey(entry.item()).toString(), entry.weight());
+            totalWeight += weights[index];
+        }
+        if (totalWeight <= 0L) {
+            return ItemStack.EMPTY;
+        }
+
+        long roll = WeightedRoll.nextLong(random, totalWeight);
+        long accumulator = 0L;
+        for (int index = 0; index < pool.size(); index++) {
+            accumulator += weights[index];
             if (roll < accumulator) {
-                int amount = entry.min() + random.nextInt(entry.max() - entry.min() + 1);
-                ItemStack stack = new ItemStack(entry.item(), amount);
-                return stack;
+                return createStack(pool.get(index), random);
             }
         }
 
         return ItemStack.EMPTY;
+    }
+
+    private static ItemStack createStack(LootEntry entry, RandomSource random) {
+        int amount = entry.min() + random.nextInt(entry.max() - entry.min() + 1);
+        return new ItemStack(entry.item(), amount);
     }
 
     private static void ensureLoaded() {
@@ -404,7 +451,7 @@ public final class LootPoolService {
         POOLS.clear();
         GLOBAL_POOL.clear();
         LOADED_FAMILIES.clear();
-        List<LootEntry> global = readLootFile(GLOBAL_LOOT_FILE, "global loot");
+        List<LootEntry> global = readLootFile(globalLootFile(), "global loot");
         GLOBAL_POOL.addAll(mergeDuplicateEntries(global));
         for (RustlingSpotFamily family : RustlingSpotFamily.values()) {
             String familyKey = family.serializedName();
@@ -418,7 +465,7 @@ public final class LootPoolService {
             LOADED_FAMILIES.add(familyKey);
         }
 
-        try (var paths = Files.walk(FAMILY_DIR)) {
+        try (var paths = Files.walk(familyDir())) {
             paths.filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(".json"))
                     .forEach(path -> {
@@ -436,15 +483,15 @@ public final class LootPoolService {
                         LOADED_FAMILIES.add(familyKey);
                     });
         } catch (IOException e) {
-            LOGGER.warn("Failed to scan custom loot family files under {}", FAMILY_DIR, e);
+            LOGGER.warn("Failed to scan custom loot family files under {}", familyDir(), e);
         }
     }
 
     private static void createDefaults() {
         try {
-            Files.createDirectories(FAMILY_DIR);
-            if (Files.notExists(GLOBAL_LOOT_FILE)) {
-                Files.writeString(GLOBAL_LOOT_FILE, DEFAULT_GLOBAL);
+            Files.createDirectories(familyDir());
+            if (Files.notExists(globalLootFile())) {
+                Files.writeString(globalLootFile(), DEFAULT_GLOBAL);
             }
             for (RustlingSpotFamily family : RustlingSpotFamily.values()) {
                 Path file = familyPath(family.serializedName());
@@ -549,15 +596,15 @@ public final class LootPoolService {
         String normalized = normalizeFamilyKey(familyKey);
         if (normalized.contains(":")) {
             String[] split = normalized.split(":", 2);
-            return FAMILY_DIR.resolve(split[0]).resolve(split[1] + ".json");
+            return familyDir().resolve(split[0]).resolve(split[1] + ".json");
         }
-        return FAMILY_DIR.resolve(normalized + ".json");
+        return familyDir().resolve(normalized + ".json");
     }
 
     private static String keyForPath(Path path) {
         Path relative;
         try {
-            relative = FAMILY_DIR.relativize(path);
+            relative = familyDir().relativize(path);
         } catch (IllegalArgumentException ex) {
             return null;
         }

@@ -73,9 +73,12 @@ public final class SpotRewardResolver {
             boolean guaranteedShinyRoll = guaranteedShiny && !shinyRewardResolved;
             boolean blockPokemonBecauseLootAlreadyWon = lootAwarded && !allowMixedRewardTypes;
             boolean canAttemptPokemon = allowMultiplePokemon || !pokemonSpawned;
+            double pokemonChance = spot.getRewardChances()
+                    .map(chances -> chances.pokemonOr(RustlingSpotsPokemonConfig.POKEMON_SPAWN.encounterChance()))
+                    .orElse(RustlingSpotsPokemonConfig.POKEMON_SPAWN.encounterChance());
             boolean attemptPokemon = !blockPokemonBecauseLootAlreadyWon && canAttemptPokemon && (guaranteedShinyRoll
                     || (RustlingSpotsPokemonConfig.POKEMON_SPAWN.enable()
-                    && random.nextDouble() < RustlingSpotsPokemonConfig.POKEMON_SPAWN.encounterChance()));
+                    && random.nextDouble() < pokemonChance));
             if (attemptPokemon) {
                 Optional<String> spawned = pokemonEncounterSpawner.spawn(level, player, spot, random, guaranteedShinyRoll);
                 if (spawned.isPresent()) {
@@ -94,7 +97,11 @@ public final class SpotRewardResolver {
                 continue;
             }
 
-            ItemStack stack = giveLoot(level, spot, random);
+            double lootChance = spot.getRewardChances().map(chances -> chances.lootOr(1.0D)).orElse(1.0D);
+            if (lootChance < 1.0D && (lootChance <= 0.0D || random.nextDouble() >= lootChance)) {
+                continue;
+            }
+            ItemStack stack = giveLoot(level, player, spot, random);
             if (!stack.isEmpty()) {
                 lootAwarded = true;
                 if (attemptPokemon && RustlingSpotsServerConfig.GENERAL.loggingEnabled()) {
@@ -220,8 +227,8 @@ public final class SpotRewardResolver {
         }
     }
 
-    private static ItemStack giveLoot(ServerLevel level, RustlingSpot spot, RandomSource random) {
-        ItemStack stack = LootPoolService.pickLoot(spot.getLootFamily(), random);
+    private static ItemStack giveLoot(ServerLevel level, ServerPlayer player, RustlingSpot spot, RandomSource random) {
+        ItemStack stack = LootPoolService.pickLoot(spot.getLootFamily(), random, player, spot);
         if (!stack.isEmpty()) {
             ItemStack copy = stack.copy();
             double x = spot.getPosition().getX() + 0.5;

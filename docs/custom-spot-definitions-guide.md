@@ -294,12 +294,21 @@ Exemples valides :
 - `particles` est optionnel
 - `spawn_mode` est optionnel; sans ce champ, le comportement naturel existant est conserve
 - `ambient_sound` doit identifier un evenement sonore enregistre par Minecraft ou un mod
+- `reward_chances` est optionnel; `pokemon` et `loot` sont des valeurs facultatives entre `0.0` et `1.0`
 
 ### Modes natural et external-only
 
 Le mode `natural`, utilise par defaut, conserve le comportement des definitions creees avant la v6.1. Utilisez `spawn_mode: "external_only"` lorsqu'un addon controle le declencheur et doit choisir quand et ou le spot apparait. La definition fournit toujours sa famille visuelle, ses particules et ses familles Pokemon et loot. L'addon le cree avec `RustlingSpotAddonApi.createSpot`; consultez le [guide de l'API Addon](./addon-api-guide-fr.md) et le [datapack external-only d'exemple](../example_datapacks/external_only_spot_pack).
 
 Pour un son d'approche propre a l'addon, utilisez `ambient_sound` avec l'identifiant d'un `SoundEvent` enregistre. L'addon doit enregistrer cet evenement et fournir les ressources sonores client. L'identifiant utilise le paquet de synchronisation normal de Rustling Spots; les clients sans cet evenement utilisent le son de fallback de la famille visuelle.
+
+Utilisez `reward_chances` pour remplacer les probabilites par tentative d'apparition Pokemon et de fallback loot :
+
+```json
+"reward_chances": { "pokemon": 0.65, "loot": 0.25 }
+```
+
+Chaque champ peut etre omis pour conserver la valeur serveur actuelle. Les definitions sans cet objet gardent leur comportement de recompense existant.
 
 ### Fallbacks importants
 

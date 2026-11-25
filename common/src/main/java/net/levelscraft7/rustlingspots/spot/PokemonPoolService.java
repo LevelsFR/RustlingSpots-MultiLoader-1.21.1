@@ -9,11 +9,14 @@ import com.google.gson.JsonParseException;
 import dev.architectury.platform.Platform;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsPokemonConfig;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsServerConfig;
+import net.levelscraft7.rustlingspots.api.RustlingSpotAddonApi;
+import net.levelscraft7.rustlingspots.api.RustlingSpotRewardWeightEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
@@ -48,9 +51,13 @@ import java.util.stream.Stream;
 public final class PokemonPoolService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PokemonPoolService.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Path BASE = Platform.getConfigFolder().resolve("rustlingspots");
-    private static final Path POKEMON_DIR = BASE.resolve("pokemon");
-    private static final Path FAMILY_DIR = POKEMON_DIR.resolve("families");
+    private static Path pokemonDir() {
+        return Platform.getConfigFolder().resolve("rustlingspots").resolve("pokemon");
+    }
+
+    private static Path familyDir() {
+        return pokemonDir().resolve("families");
+    }
     private static final String DATAPACK_DIRECTORY = "rustling_spots/pokemon_families";
     private static final String LAVA_FAMILY_KEY = "netherflamme_lava";
     private static final AtomicBoolean LOADED = new AtomicBoolean(false);
@@ -856,6 +863,13 @@ public final class PokemonPoolService {
         WARNED_POOL_ENTRIES.clear();
     }
 
+    public static synchronized void clearDatapackSession() {
+        DATAPACK_ENTRIES.clear();
+        DATAPACK_FAMILIES.clear();
+        latestDatapackResourceManager = null;
+        WARNED_POOL_ENTRIES.clear();
+    }
+
     /**
      * Re-reads both config and datapack pools after Cobblemon has completed a species reload.
      * Reloading from the original sources is important: an addon species that becomes valid in
@@ -923,6 +937,11 @@ public final class PokemonPoolService {
     }
 
     public static PoolSelection pickRandomSelection(ServerLevel level, RustlingSpot spot, RandomSource random) {
+        return pickRandomSelection(level, spot, random, null);
+    }
+
+    public static PoolSelection pickRandomSelection(ServerLevel level, RustlingSpot spot,
+                                                     RandomSource random, ServerPlayer player) {
         ensureLoaded();
         boolean enforceTypes = RustlingSpotsPokemonConfig.POKEMON_SPAWN.typedSpawnRules();
         PoolContext context = resolvePoolContext(level, spot);
@@ -937,23 +956,55 @@ public final class PokemonPoolService {
             return PoolSelection.empty(context);
         }
 
-        int totalWeight = candidates.stream().mapToInt(PokemonEntry:: weight).sum();
-        if (totalWeight <= 0) {
+        if (player == null || !RustlingSpotAddonApi.hasRewardWeightModifiers()) {
+            int totalWeight = candidates.stream().mapToInt(PokemonEntry::weight).sum();
+            if (totalWeight <= 0) {
+                if (RustlingSpotsServerConfig.GENERAL.loggingEnabled()) {
+                    LOGGER.debug("Configured Pokemon pool had no weight for family {} at {}", familyKey, spot.getPosition());
+                }
+                return PoolSelection.empty(context);
+            }
+
+            int roll = random.nextInt(totalWeight);
+            int accumulator = 0;
+            for (PokemonEntry entry : candidates) {
+                accumulator += entry.weight();
+                if (roll < accumulator) {
+                    return new PoolSelection(entry, context, candidates.size());
+                }
+            }
+            return new PoolSelection(candidates.get(candidates.size() - 1), context, candidates.size());
+        }
+
+        int[] weights = new int[candidates.size()];
+        long totalWeight = 0L;
+        int weightedCount = 0;
+        for (int index = 0; index < candidates.size(); index++) {
+            PokemonEntry entry = candidates.get(index);
+            int weight = RustlingSpotAddonApi.modifyRewardWeight(player, spot,
+                    RustlingSpotRewardWeightEvent.Type.POKEMON, entry.species(), entry.weight());
+            weights[index] = weight;
+            totalWeight += weight;
+            if (weight > 0) {
+                weightedCount++;
+            }
+        }
+        if (totalWeight <= 0L) {
             if (RustlingSpotsServerConfig.GENERAL.loggingEnabled()) {
-                LOGGER.debug("Configured Pokemon pool had no weight for family {} at {}", familyKey, spot.getPosition());
+                LOGGER.debug("Player reward modifiers left no Pokemon weight for family {} at {}", familyKey, spot.getPosition());
             }
             return PoolSelection.empty(context);
         }
 
-        int roll = random.nextInt(totalWeight);
-        int accumulator = 0;
-        for (PokemonEntry entry : candidates) {
-            accumulator += entry.weight();
+        long roll = WeightedRoll.nextLong(random, totalWeight);
+        long accumulator = 0L;
+        for (int index = 0; index < candidates.size(); index++) {
+            accumulator += weights[index];
             if (roll < accumulator) {
-                return new PoolSelection(entry, context, candidates.size());
+                return new PoolSelection(candidates.get(index), context, weightedCount);
             }
         }
-        return new PoolSelection(candidates.get(candidates.size() - 1), context, candidates.size());
+        return PoolSelection.empty(context);
     }
 
     private static void ensureLoaded() {
@@ -976,7 +1027,7 @@ public final class PokemonPoolService {
             LOADED_FAMILIES.add(familyKey);
         }
 
-        try (var paths = Files.walk(FAMILY_DIR)) {
+        try (var paths = Files.walk(familyDir())) {
             paths.filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(".json"))
                     .filter(path -> !isGeneratedDefaultReference(path))
@@ -989,7 +1040,7 @@ public final class PokemonPoolService {
                         LOADED_FAMILIES.add(familyKey);
                     });
         } catch (IOException e) {
-            LOGGER.warn("Failed to scan custom pokemon family files under {}", FAMILY_DIR, e);
+            LOGGER.warn("Failed to scan custom pokemon family files under {}", familyDir(), e);
         }
 
         if (ENTRIES.isEmpty()) {
@@ -999,7 +1050,7 @@ public final class PokemonPoolService {
 
     private static void createDefaults() {
         try {
-            Files.createDirectories(FAMILY_DIR);
+            Files.createDirectories(familyDir());
             for (RustlingSpotFamily family : RustlingSpotFamily.values()) {
                 String familyKey = family.serializedName();
                 Path path = familyPath(familyKey);
@@ -1373,15 +1424,15 @@ public final class PokemonPoolService {
         String normalized = normalizeFamilyKey(familyKey);
         if (normalized.contains(":")) {
             String[] split = normalized.split(":", 2);
-            return FAMILY_DIR.resolve(split[0]).resolve(split[1] + ".json");
+            return familyDir().resolve(split[0]).resolve(split[1] + ".json");
         }
-        return FAMILY_DIR.resolve(normalized + ".json");
+        return familyDir().resolve(normalized + ".json");
     }
 
     private static String keyForPath(Path path) {
         Path relative;
         try {
-            relative = FAMILY_DIR.relativize(path);
+            relative = familyDir().relativize(path);
         } catch (IllegalArgumentException ex) {
             return null;
         }

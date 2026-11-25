@@ -12,6 +12,10 @@
   "blocks": ["#minecraft:leaves"],
   "pokemon_family": "grass",
   "loot_family": "grass",
+  "reward_chances": {
+    "pokemon": 0.65,
+    "loot": 0.25
+  },
   "particles": [
     { "type": "minecraft:happy_villager", "weight": 1 },
     { "type": "rustlingspots:grass_burst", "weight": 1 }

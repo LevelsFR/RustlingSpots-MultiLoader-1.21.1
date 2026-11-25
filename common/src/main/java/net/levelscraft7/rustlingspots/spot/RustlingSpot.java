@@ -4,10 +4,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import net.levelscraft7.rustlingspots.api.RustlingSpotRewardChances;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Lightweight server-side representation of an active rustling spot.
@@ -29,6 +31,11 @@ public final class RustlingSpot {
     private final ResourceLocation ambientSoundId;
     private final int lifetimeTicks;
     private final ResourceLocation sourceId;
+    private final boolean external;
+    private final double sameSourceSpacingBlocks;
+    private final boolean despawnWhenNoPlayers;
+    private final RustlingSpotRewardChances rewardChances;
+    private final AtomicBoolean interactionClaimed = new AtomicBoolean();
 
     public RustlingSpot(
             UUID id,
@@ -67,6 +74,33 @@ public final class RustlingSpot {
             int lifetimeTicks,
             ResourceLocation sourceId
     ) {
+        this(id, dimension, position, family, pokemonFamily, lootFamily, spotId, customDisplayName, particles,
+                createdTick, ambientVariant, shiny, custom, ambientSoundId, lifetimeTicks, sourceId,
+                false, 0.0D, true, null);
+    }
+
+    public RustlingSpot(
+            UUID id,
+            ResourceKey<Level> dimension,
+            BlockPos position,
+            RustlingSpotFamily family,
+            String pokemonFamily,
+            String lootFamily,
+            ResourceLocation spotId,
+            String customDisplayName,
+            List<WeightedParticleReference> particles,
+            long createdTick,
+            int ambientVariant,
+            boolean shiny,
+            boolean custom,
+            ResourceLocation ambientSoundId,
+            int lifetimeTicks,
+            ResourceLocation sourceId,
+            boolean external,
+            double sameSourceSpacingBlocks,
+            boolean despawnWhenNoPlayers,
+            RustlingSpotRewardChances rewardChances
+    ) {
         this.id = java.util.Objects.requireNonNull(id, "id");
         this.dimension = java.util.Objects.requireNonNull(dimension, "dimension");
         this.position = java.util.Objects.requireNonNull(position, "position").immutable();
@@ -83,6 +117,10 @@ public final class RustlingSpot {
         this.ambientSoundId = ambientSoundId;
         this.lifetimeTicks = Math.max(0, lifetimeTicks);
         this.sourceId = sourceId;
+        this.external = external;
+        this.sameSourceSpacingBlocks = sameSourceSpacingBlocks;
+        this.despawnWhenNoPlayers = despawnWhenNoPlayers;
+        this.rewardChances = rewardChances;
     }
 
     public UUID getId() {
@@ -144,6 +182,26 @@ public final class RustlingSpot {
 
     public Optional<ResourceLocation> getSourceId() {
         return Optional.ofNullable(sourceId);
+    }
+
+    public boolean isExternal() {
+        return external;
+    }
+
+    public double getSameSourceSpacingBlocks() {
+        return sameSourceSpacingBlocks;
+    }
+
+    public boolean despawnWhenNoPlayers() {
+        return despawnWhenNoPlayers;
+    }
+
+    public Optional<RustlingSpotRewardChances> getRewardChances() {
+        return Optional.ofNullable(rewardChances);
+    }
+
+    public boolean tryClaimInteraction() {
+        return interactionClaimed.compareAndSet(false, true);
     }
 
     public String displayName() {

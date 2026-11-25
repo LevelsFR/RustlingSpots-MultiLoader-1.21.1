@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import net.levelscraft7.rustlingspots.common.RustlingSpotsCommon;
+import net.levelscraft7.rustlingspots.api.RustlingSpotRewardChances;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -84,6 +85,10 @@ public final class CustomSpotDefinitionRegistry {
 
     public static Collection<CustomSpotDefinition> all() {
         return Collections.unmodifiableCollection(DEFINITIONS.values());
+    }
+
+    public static void clear() {
+        DEFINITIONS.clear();
     }
 
     public static Optional<CustomSpotDefinition> get(ResourceLocation id) {
@@ -183,6 +188,7 @@ public final class CustomSpotDefinitionRegistry {
             return Optional.empty();
         }
         ResourceLocation ambientSoundId = parseAmbientSound(id, optionalString(root, "ambient_sound"));
+        RustlingSpotRewardChances rewardChances = parseRewardChances(id, root.get("reward_chances"));
         SpotSpawnTemplate template = new SpotSpawnTemplate(
                 id,
                 visualFamily,
@@ -194,7 +200,43 @@ public final class CustomSpotDefinitionRegistry {
                 particles,
                 true
         );
-        return Optional.of(new CustomSpotDefinition(template, dimensions, blocks, biomes, spawnMode, ambientSoundId));
+        return Optional.of(new CustomSpotDefinition(template, dimensions, blocks, biomes, spawnMode,
+                ambientSoundId, rewardChances));
+    }
+
+    private static RustlingSpotRewardChances parseRewardChances(ResourceLocation id, JsonElement element) {
+        if (element == null || element.isJsonNull()) {
+            return null;
+        }
+        if (!element.isJsonObject()) {
+            throw new JsonParseException("reward_chances must be an object");
+        }
+        JsonObject object = element.getAsJsonObject();
+        Double pokemon = optionalChance(object, "pokemon");
+        Double loot = optionalChance(object, "loot");
+        if (pokemon == null && loot == null) {
+            return null;
+        }
+        try {
+            return new RustlingSpotRewardChances(pokemon, loot);
+        } catch (IllegalArgumentException exception) {
+            throw new JsonParseException(exception.getMessage());
+        }
+    }
+
+    private static Double optionalChance(JsonObject object, String key) {
+        if (!object.has(key) || object.get(key).isJsonNull()) {
+            return null;
+        }
+        JsonElement element = object.get(key);
+        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isNumber()) {
+            throw new JsonParseException("reward_chances." + key + " must be a number");
+        }
+        double chance = element.getAsDouble();
+        if (!Double.isFinite(chance) || chance < 0.0D || chance > 1.0D) {
+            throw new JsonParseException("reward_chances." + key + " must be between 0 and 1");
+        }
+        return chance;
     }
 
     private static ResourceLocation parseAmbientSound(ResourceLocation id, String raw) {

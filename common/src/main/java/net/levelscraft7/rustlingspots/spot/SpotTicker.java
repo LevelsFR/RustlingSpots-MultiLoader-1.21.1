@@ -54,8 +54,6 @@ public class SpotTicker {
                 } else if (result == RustlingSpotInteractionResult.PASS) {
                     SpotRewardResolver.resolve(level, player, spot);
                 }
-                pendingRemoval.add(new PendingRemoval(spot,
-                        RustlingSpotLifecycleEvent.RemovalReason.INTERACTION, player));
             }
         }
 
@@ -63,7 +61,8 @@ public class SpotTicker {
     }
 
     private RustlingSpotLifecycleEvent.RemovalReason despawnReason(ServerLevel level, RustlingSpot spot) {
-        if (!level.hasChunk(spot.getPosition().getX() >> 4, spot.getPosition().getZ() >> 4)) {
+        boolean chunkLoaded = level.hasChunk(spot.getPosition().getX() >> 4, spot.getPosition().getZ() >> 4);
+        if (!chunkLoaded && shouldDespawnWithoutNearbyPlayers(spot)) {
             return RustlingSpotLifecycleEvent.RemovalReason.CLEANUP;
         }
 
@@ -72,6 +71,9 @@ public class SpotTicker {
                 ? spot.getLifetimeTicks() : RustlingSpotsServerConfig.GENERAL.spotLifetimeTicks();
         if (age > lifetimeTicks) {
             return RustlingSpotLifecycleEvent.RemovalReason.EXPIRED;
+        }
+        if (!chunkLoaded) {
+            return null;
         }
 
         double maxDistance = RustlingSpotsServerConfig.GENERAL.playerSpotRadius();
@@ -83,7 +85,14 @@ public class SpotTicker {
                         spot.getPosition().getY() + 0.5,
                         spot.getPosition().getZ() + 0.5
                 ) <= maxDistanceSq);
+        if (!shouldDespawnWithoutNearbyPlayers(spot)) {
+            return null;
+        }
         return noNearbyPlayer ? RustlingSpotLifecycleEvent.RemovalReason.CLEANUP : null;
+    }
+
+    static boolean shouldDespawnWithoutNearbyPlayers(RustlingSpot spot) {
+        return !spot.isExternal() || spot.despawnWhenNoPlayers();
     }
 
     private ServerPlayer findInteractingPlayer(ServerLevel level, RustlingSpot spot) {
@@ -96,6 +105,9 @@ public class SpotTicker {
                 .expandTowards(0.0D, interactionVerticalAllowance, 0.0D);
         Vec3 spotCenter = lowerCorner.add(0.5D, 0.5D, 0.5D);
         for (Player player : level.getEntitiesOfClass(Player.class, box)) {
+            if (player.isSpectator()) {
+                continue;
+            }
             if (RustlingSpotService.INTERACTION_BLOCKER.isBlocked(player.getUUID(), level.getGameTime())) {
                 continue;
             }

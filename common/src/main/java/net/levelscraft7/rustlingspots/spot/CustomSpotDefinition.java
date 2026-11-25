@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.levelscraft7.rustlingspots.api.RustlingSpotRewardChances;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,25 @@ public final class CustomSpotDefinition {
     private final List<BiomeMatcher> biomes;
     private final SpotSpawnMode spawnMode;
     private final ResourceLocation ambientSoundId;
+    private final RustlingSpotRewardChances rewardChances;
+
+    public CustomSpotDefinition(
+            SpotSpawnTemplate template,
+            Set<ResourceKey<Level>> dimensions,
+            List<BlockMatcher> blocks,
+            List<BiomeMatcher> biomes,
+            SpotSpawnMode spawnMode,
+            ResourceLocation ambientSoundId,
+            RustlingSpotRewardChances rewardChances
+    ) {
+        this.template = template;
+        this.dimensions = Set.copyOf(dimensions);
+        this.blocks = List.copyOf(blocks);
+        this.biomes = List.copyOf(biomes);
+        this.spawnMode = spawnMode == null ? SpotSpawnMode.NATURAL : spawnMode;
+        this.ambientSoundId = ambientSoundId;
+        this.rewardChances = rewardChances;
+    }
 
     public CustomSpotDefinition(
             SpotSpawnTemplate template,
@@ -35,12 +55,7 @@ public final class CustomSpotDefinition {
             SpotSpawnMode spawnMode,
             ResourceLocation ambientSoundId
     ) {
-        this.template = template;
-        this.dimensions = Set.copyOf(dimensions);
-        this.blocks = List.copyOf(blocks);
-        this.biomes = List.copyOf(biomes);
-        this.spawnMode = spawnMode == null ? SpotSpawnMode.NATURAL : spawnMode;
-        this.ambientSoundId = ambientSoundId;
+        this(template, dimensions, blocks, biomes, spawnMode, ambientSoundId, null);
     }
 
     public CustomSpotDefinition(
@@ -76,6 +91,10 @@ public final class CustomSpotDefinition {
 
     public Optional<ResourceLocation> ambientSoundId() {
         return Optional.ofNullable(ambientSoundId);
+    }
+
+    public Optional<RustlingSpotRewardChances> rewardChances() {
+        return Optional.ofNullable(rewardChances);
     }
 
     public boolean matches(Level level, BlockPos groundPos, BlockState groundState) {

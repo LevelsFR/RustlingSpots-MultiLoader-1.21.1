@@ -15,6 +15,10 @@ public final class NeoForgeSpotSpawnerBridge {
         delegate.forgetPlayer(playerId);
     }
 
+    public void clearSessionState() {
+        delegate.clearSessionState();
+    }
+
     @SubscribeEvent
     public void onServerTick(ServerTickEvent.Post event) {
         delegate.onServerTick(event.getServer());

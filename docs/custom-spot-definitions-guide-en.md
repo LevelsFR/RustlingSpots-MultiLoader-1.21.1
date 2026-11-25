@@ -292,12 +292,21 @@ Valid examples:
 - `visual_family` is optional and accepts `grass`, `sand`, `water`, `underwater`, `snow`, `leaves`, `cave`, `geode`, `end`, `netherflamme`, `soulflame` or `flying`
 - `spawn_mode` is optional; omitted values keep the existing natural-spawn behavior
 - `ambient_sound` must refer to a sound event registered by Minecraft or a mod
+- `reward_chances` is optional; `pokemon` and `loot` values are independently optional and must be between `0.0` and `1.0`
 
 ### Natural and external-only modes
 
 The default `natural` mode preserves the behavior of definitions made before v6.1. Set `spawn_mode` to `external_only` when an addon owns the trigger and should decide when and where the spot appears. The definition still provides its visual family, particles, Pokémon family and loot family. Addons create it through `RustlingSpotAddonApi.createSpot`; see the [Addon API guide](./addon-api-guide-en.md) and [external-only example datapack](../example_datapacks/external_only_spot_pack).
 
 For an addon-specific approach sound, set `ambient_sound` to a registered `SoundEvent` ID. The addon must register that event and provide client sound assets. The ID is sent through Rustling Spots' normal spot sync packet; clients without the event use the visual-family fallback.
+
+Use `reward_chances` to override per-roll Pokémon attempts and loot fallback chances on a custom definition:
+
+```json
+"reward_chances": { "pokemon": 0.65, "loot": 0.25 }
+```
+
+Each field can be omitted to retain the current server default. Definitions without this object preserve their existing reward behavior.
 - `dimensions` is optional
 - `particles` is optional
 

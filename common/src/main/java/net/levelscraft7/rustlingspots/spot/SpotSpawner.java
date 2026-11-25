@@ -50,6 +50,10 @@ public class SpotSpawner {
         lastPlayerSpawnTrigger.remove(playerId);
     }
 
+    public void clearSessionState() {
+        lastPlayerSpawnTrigger.clear();
+    }
+
     public void onServerTick(MinecraftServer server) {
         if (server.getTickCount() % 20 != 0) {
             return;
@@ -193,8 +197,11 @@ public class SpotSpawner {
             ResourceLocation ambientSoundId = CustomSpotDefinitionRegistry.get(template.spotId())
                     .flatMap(CustomSpotDefinition::ambientSoundId)
                     .orElse(null);
+            var rewardChances = CustomSpotDefinitionRegistry.get(template.spotId())
+                    .flatMap(CustomSpotDefinition::rewardChances)
+                    .orElse(null);
             RustlingSpot spot = template.createSpot(id, level.dimension(), candidate, level.getGameTime(),
-                    variant, shiny, ambientSoundId, 0, null);
+                    variant, shiny, ambientSoundId, 0, null, false, 0.0D, true, rewardChances);
 
             RustlingSpotLifecycleService.add(level, spot);
 

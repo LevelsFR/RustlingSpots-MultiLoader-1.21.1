@@ -27,6 +27,10 @@ public final class RustlingPlayerPreferences {
         MESSAGE_PREFERENCES.remove(player.getUUID());
     }
 
+    public static void clearAll() {
+        MESSAGE_PREFERENCES.clear();
+    }
+
     public record MessagePreferences(boolean showPokemonMessages, boolean showLootMessages, boolean showEmptySpotMessages) {
         public static MessagePreferences defaults() {
             return new MessagePreferences(true, false, true);

@@ -37,6 +37,8 @@ Rustling Spots does **not** modify world generation, making it safe to add to ex
 - Admin spawning, reload, statistics and scan/debug commands
 - Datapack-driven **custom spot definitions**
 - Addon API for creating, querying and removing spots with lifecycle callbacks
+- Event-specific spacing and no-player despawn options for addon-created spots
+- Datapack reward chance overrides and player-specific addon reward weight modifiers
 - **External-only** definitions that addons can trigger without natural spawning
 - Custom biome, block and dimension rules
 - Custom Pokémon and loot families

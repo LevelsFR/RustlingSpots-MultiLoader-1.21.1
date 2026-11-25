@@ -5,6 +5,9 @@
 - Addons can create spots at validated positions with custom definitions, lifetimes and source IDs, then query or remove them through the public API.
 - Addon lifecycle callbacks report creation, interaction, expiration and removal.
 - Custom definitions support an `external_only` mode, custom ambient sounds and the existing visual-family and particle systems.
+- Addons can choose spacing between spots sharing an event source and whether their spots despawn early when no players are nearby.
+- Custom definitions can override Pokémon and loot reward chances; addon callbacks can adjust Pokémon and item weights for each player.
+- Spot interactions are claimed once before callbacks and rewards, spectators cannot consume spots, and session runtime caches are cleared when a server stops.
 
 ## Changes
 

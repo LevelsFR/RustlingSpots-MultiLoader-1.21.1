@@ -7,6 +7,11 @@ public final class RustlingSpotService {
     public static final RustlingSpotManager MANAGER = new RustlingSpotManager();
     public static final SpotInteractionBlocker INTERACTION_BLOCKER = new SpotInteractionBlocker();
 
+    public static void clearSessionState() {
+        MANAGER.clear();
+        INTERACTION_BLOCKER.clear();
+    }
+
     private RustlingSpotService() {
     }
 }

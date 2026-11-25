@@ -25,6 +25,21 @@ boolean removed = RustlingSpotAddonApi.removeSpot(serverLevel, spotId);
 
 `createSpot` returns an empty `Optional` if a definition is missing, the call is off the server thread, the location is invalid or unloaded, another spot is too close, or the global limit is reached. `lifetimeTicks` must be positive. Pass `null` for `sourceId` when the spot does not belong to a particular addon event. A created spot uses the selected definition's Pokémon pool, loot pool, shiny rules, visuals, particles and sounds.
 
+Use `RustlingSpotSpawnOptions` when an event needs closer or more widely spaced spots, or when its spots should remain until their lifetime expires after players leave:
+
+```java
+RustlingSpotSpawnOptions options = new RustlingSpotSpawnOptions(
+        20 * 60,
+        sourceId,
+        6.0D, // minimum distance between spots with this same non-null source ID
+        false // do not remove early when no non-spectator players are nearby
+);
+Optional<RustlingSpot> created = RustlingSpotAddonApi.createSpot(
+        serverLevel, spotPosition, definitionId, options);
+```
+
+The source-specific spacing is bounded to 0–512 blocks. Spots from other sources and natural spots still obey the configured global minimum spacing. A spot keeps the spacing requested when it was created, so a later call cannot loosen that event's spacing. With `despawnWhenNoPlayers=false`, a spot stays registered in unloaded chunks until its lifetime expires. The original `createSpot(..., lifetimeTicks, sourceId)` overload remains available and keeps its configured spacing and early-despawn defaults. A `null` source does not form a spacing group.
+
 The definition can also be inspected before creating a spot:
 
 ```java
@@ -61,7 +76,28 @@ RustlingSpotAddonApi.registerInteractionCallback(event -> {
 });
 ```
 
-Interaction callbacks still run after the interaction is validated and before normal reward resolution. The first non-`PASS` result wins.
+Interaction callbacks still run after the interaction is validated and before normal reward resolution. The first non-`PASS` result wins. A spot is claimed and removed exactly once before reward resolution, including when a callback or reward handler throws or re-enters the API. Spectators are ignored. `unregisterInteractionCallback` removes a listener.
+
+### Reward chances and player-specific weights
+
+Definitions may include `reward_chances` with optional `pokemon` and `loot` values from `0.0` to `1.0`. Missing values keep the existing server-configured Pokémon chance and full loot fallback chance. An addon can adjust individual Pokémon and item pool weights for a player:
+
+```java
+RustlingSpotRewardWeightModifier modifier = event -> {
+    if (event.type() == RustlingSpotRewardWeightEvent.Type.ITEM
+            && event.rewardId().equals("minecraft:glow_berries")
+            && event.spot().getSourceId().filter(sourceId::equals).isPresent()
+            && event.player().isCreative()) {
+        return event.currentWeight() * 2;
+    }
+    return event.currentWeight();
+};
+RustlingSpotAddonApi.registerRewardWeightModifier(modifier);
+// Later, during addon shutdown:
+RustlingSpotAddonApi.unregisterRewardWeightModifier(modifier);
+```
+
+The event identifies the player, spot, reward type (`POKEMON` or `ITEM`), configured reward ID, original weight and current weight. A returned weight of zero excludes that entry; callback exceptions leave the current weight unchanged. Keep lifecycle and reward registrations at mod initialization; the mod clears world, cooldown, preference and datapack caches when each server stops, while addon registrations remain process-wide.
 
 ## Datapack definitions
 
@@ -82,6 +118,7 @@ The optional `spawn_mode` field accepts `natural` or `external_only`. Omitted fi
   "blocks": ["#minecraft:leaves"],
   "pokemon_family": "grass",
   "loot_family": "grass",
+  "reward_chances": { "pokemon": 0.65, "loot": 0.25 },
   "particles": [{"type": "minecraft:happy_villager", "weight": 1}]
 }
 ```

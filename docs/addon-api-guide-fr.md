@@ -25,6 +25,21 @@ boolean removed = RustlingSpotAddonApi.removeSpot(serverLevel, spotId);
 
 `createSpot` renvoie un `Optional` vide si la définition est absente, si l'appel ne vient pas du thread serveur, si la position est invalide ou non chargée, si un autre spot est trop proche ou si la limite globale est atteinte. `lifetimeTicks` doit être positif. Passez `null` pour `sourceId` si le spot n'appartient pas à un événement d'addon particulier. Un spot créé utilise les pools Pokémon et loot, les règles shiny, les visuels, les particules et les sons de sa définition.
 
+Utilisez `RustlingSpotSpawnOptions` pour espacer les spots d'un même événement ou les conserver jusqu'à leur expiration lorsque les joueurs sont partis :
+
+```java
+RustlingSpotSpawnOptions options = new RustlingSpotSpawnOptions(
+        20 * 60,
+        sourceId,
+        6.0D, // distance minimale entre spots ayant le même sourceId non nul
+        false // ne pas supprimer le spot en l'absence de joueur non spectateur
+);
+Optional<RustlingSpot> created = RustlingSpotAddonApi.createSpot(
+        serverLevel, spotPosition, definitionId, options);
+```
+
+La distance par source est bornée entre 0 et 512 blocs. Les spots d'autres sources et les spots naturels restent soumis à la distance minimale globale configurée. Le spot conserve la distance demandée lors de sa création; un appel ultérieur ne peut donc pas relâcher celle de l'événement. Avec `despawnWhenNoPlayers=false`, un spot reste enregistré dans un chunk déchargé jusqu'à son expiration. L'ancien overload `createSpot(..., lifetimeTicks, sourceId)` conserve ses valeurs de distance et suppression anticipée. Une source `null` ne forme pas un groupe d'espacement.
+
 La définition peut être inspectée avant la création :
 
 ```java
@@ -61,7 +76,28 @@ RustlingSpotAddonApi.registerInteractionCallback(event -> {
 });
 ```
 
-Les callbacks d'interaction s'exécutent toujours après validation de l'interaction et avant la résolution normale des récompenses. Le premier résultat différent de `PASS` est appliqué.
+Les callbacks d'interaction s'exécutent après validation et avant la résolution normale des récompenses. Le premier résultat différent de `PASS` est appliqué. Le spot est revendiqué et supprimé une seule fois avant la résolution des récompenses, y compris si un callback ou le gestionnaire de récompenses échoue ou réentre dans l'API. Les spectateurs sont ignorés. `unregisterInteractionCallback` retire un listener.
+
+### Chances et poids des récompenses
+
+Une définition peut fournir `reward_chances` avec `pokemon` et/ou `loot` entre `0.0` et `1.0`. Une valeur absente conserve la chance Pokémon configurée sur le serveur ou le fallback loot complet actuel. Un addon peut ajuster le poids de chaque entrée Pokémon ou item selon le joueur :
+
+```java
+RustlingSpotRewardWeightModifier modifier = event -> {
+    if (event.type() == RustlingSpotRewardWeightEvent.Type.ITEM
+            && event.rewardId().equals("minecraft:glow_berries")
+            && event.spot().getSourceId().filter(sourceId::equals).isPresent()
+            && event.player().isCreative()) {
+        return event.currentWeight() * 2;
+    }
+    return event.currentWeight();
+};
+RustlingSpotAddonApi.registerRewardWeightModifier(modifier);
+// Plus tard, à l'arrêt de l'addon :
+RustlingSpotAddonApi.unregisterRewardWeightModifier(modifier);
+```
+
+L'événement fournit le joueur, le spot, le type (`POKEMON` ou `ITEM`), l'identifiant de récompense configuré, le poids initial et le poids courant. Un poids final nul exclut cette entrée; une exception conserve le poids courant. Les callbacks doivent être enregistrés à l'initialisation du mod : les caches de spots, cooldowns, préférences et datapacks sont vidés à l'arrêt du serveur, tandis que les inscriptions d'addons restent actives dans le processus.
 
 ## Définitions datapack
 
@@ -82,6 +118,7 @@ Le champ optionnel `spawn_mode` accepte `natural` ou `external_only`. En son abs
   "blocks": ["#minecraft:leaves"],
   "pokemon_family": "grass",
   "loot_family": "grass",
+  "reward_chances": { "pokemon": 0.65, "loot": 0.25 },
   "particles": [{"type": "minecraft:happy_villager", "weight": 1}]
 }
 ```
