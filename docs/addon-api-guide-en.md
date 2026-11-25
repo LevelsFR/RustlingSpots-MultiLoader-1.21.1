@@ -38,7 +38,7 @@ Optional<RustlingSpot> created = RustlingSpotAddonApi.createSpot(
         serverLevel, spotPosition, definitionId, options);
 ```
 
-The source-specific spacing is bounded to 0–512 blocks. Spots from other sources and natural spots still obey the configured global minimum spacing. A spot keeps the spacing requested when it was created, so a later call cannot loosen that event's spacing. With `despawnWhenNoPlayers=false`, a spot stays registered in unloaded chunks until its lifetime expires. The original `createSpot(..., lifetimeTicks, sourceId)` overload remains available and keeps its configured spacing and early-despawn defaults. A `null` source does not form a spacing group.
+The source-specific spacing is bounded to 0–512 blocks. Spots from other sources and natural spots still obey the configured global minimum spacing. A spot keeps the spacing requested when it was created, so a later call cannot loosen that event's spacing. With `despawnWhenNoPlayers=false`, a spot stays registered in unloaded chunks until its lifetime expires, but cannot be interacted with until its chunk is loaded again. The original `createSpot(..., lifetimeTicks, sourceId)` overload remains available and keeps its configured spacing and early-despawn defaults. A `null` source does not form a spacing group.
 
 The definition can also be inspected before creating a spot:
 

@@ -40,9 +40,13 @@ public class SpotTicker {
 
         List<PendingRemoval> pendingRemoval = new ArrayList<>();
         for (RustlingSpot spot : RustlingSpotService.MANAGER.getAll(level.dimension())) {
-            RustlingSpotLifecycleEvent.RemovalReason despawnReason = despawnReason(level, spot);
+            boolean chunkLoaded = level.hasChunk(spot.getPosition().getX() >> 4, spot.getPosition().getZ() >> 4);
+            RustlingSpotLifecycleEvent.RemovalReason despawnReason = despawnReason(level, spot, chunkLoaded);
             if (despawnReason != null) {
                 pendingRemoval.add(new PendingRemoval(spot, despawnReason, null));
+                continue;
+            }
+            if (!shouldAttemptInteraction(chunkLoaded)) {
                 continue;
             }
 
@@ -60,8 +64,8 @@ public class SpotTicker {
         pendingRemoval.forEach(removal -> removeSpot(level, removal.spot(), removal.reason(), removal.player()));
     }
 
-    private RustlingSpotLifecycleEvent.RemovalReason despawnReason(ServerLevel level, RustlingSpot spot) {
-        boolean chunkLoaded = level.hasChunk(spot.getPosition().getX() >> 4, spot.getPosition().getZ() >> 4);
+    private RustlingSpotLifecycleEvent.RemovalReason despawnReason(ServerLevel level, RustlingSpot spot,
+                                                                    boolean chunkLoaded) {
         if (!chunkLoaded && shouldDespawnWithoutNearbyPlayers(spot)) {
             return RustlingSpotLifecycleEvent.RemovalReason.CLEANUP;
         }
@@ -93,6 +97,10 @@ public class SpotTicker {
 
     static boolean shouldDespawnWithoutNearbyPlayers(RustlingSpot spot) {
         return !spot.isExternal() || spot.despawnWhenNoPlayers();
+    }
+
+    static boolean shouldAttemptInteraction(boolean chunkLoaded) {
+        return chunkLoaded;
     }
 
     private ServerPlayer findInteractingPlayer(ServerLevel level, RustlingSpot spot) {

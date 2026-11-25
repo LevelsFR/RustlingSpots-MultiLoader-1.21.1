@@ -31,6 +31,12 @@ class RustlingSpotConsumptionTest {
         assertTrue(SpotTicker.shouldDespawnWithoutNearbyPlayers(createSpot(false, false)));
     }
 
+    @Test
+    void unloadedRetainedSpotCannotBeInteractedWithUntilItsChunkLoads() {
+        assertFalse(SpotTicker.shouldAttemptInteraction(false));
+        assertTrue(SpotTicker.shouldAttemptInteraction(true));
+    }
+
     private static RustlingSpot createSpot(boolean external, boolean despawnWhenNoPlayers) {
         return new RustlingSpot(UUID.randomUUID(), Level.OVERWORLD, new BlockPos(0, 64, 0),
                 RustlingSpotFamily.GRASS, "grass", "grass", RustlingSpotFamily.GRASS.spotId(),

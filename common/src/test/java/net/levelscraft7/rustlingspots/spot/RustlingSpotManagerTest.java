@@ -39,6 +39,15 @@ class RustlingSpotManagerTest {
     }
 
     @Test
+    void existingSourceSpacingIsIncludedWhenItExceedsNewSearchRadius() {
+        RustlingSpotManager manager = new RustlingSpotManager();
+        manager.addIfAbsent(spot(new BlockPos(0, 64, 0), EVENT, true, 64.0D));
+
+        assertFalse(manager.isFarEnoughForSource(Level.OVERWORLD, 0.0D,
+                EVENT, 4.0D * 4.0D, new BlockPos(40, 64, 0)));
+    }
+
+    @Test
     void clearRemovesSpotsAndResetsSessionCount() {
         RustlingSpotManager manager = new RustlingSpotManager();
         manager.addIfAbsent(spot(new BlockPos(0, 64, 0), EVENT, true));

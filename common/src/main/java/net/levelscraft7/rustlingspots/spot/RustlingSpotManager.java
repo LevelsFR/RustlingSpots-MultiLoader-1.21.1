@@ -94,6 +94,13 @@ public class RustlingSpotManager {
         double globalRadius = Math.sqrt(Math.max(0.0D, minDistanceSq));
         double sourceRadius = sourceId == null ? 0.0D : Math.sqrt(Math.max(0.0D, sourceSpacingSq));
         double searchRadius = Math.max(globalRadius, sourceRadius);
+        if (sourceId != null) {
+            for (RustlingSpot existing : getAll(dimension)) {
+                if (existing.isExternal() && existing.getSourceId().filter(sourceId::equals).isPresent()) {
+                    searchRadius = Math.max(searchRadius, existing.getSameSourceSpacingBlocks());
+                }
+            }
+        }
         for (RustlingSpot existing : nearbySpots(dimension, position, searchRadius)) {
             boolean sameSource = sourceId != null && existing.isExternal()
                     && existing.getSourceId().filter(sourceId::equals).isPresent();

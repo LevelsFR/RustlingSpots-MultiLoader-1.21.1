@@ -38,7 +38,7 @@ Optional<RustlingSpot> created = RustlingSpotAddonApi.createSpot(
         serverLevel, spotPosition, definitionId, options);
 ```
 
-La distance par source est bornée entre 0 et 512 blocs. Les spots d'autres sources et les spots naturels restent soumis à la distance minimale globale configurée. Le spot conserve la distance demandée lors de sa création; un appel ultérieur ne peut donc pas relâcher celle de l'événement. Avec `despawnWhenNoPlayers=false`, un spot reste enregistré dans un chunk déchargé jusqu'à son expiration. L'ancien overload `createSpot(..., lifetimeTicks, sourceId)` conserve ses valeurs de distance et suppression anticipée. Une source `null` ne forme pas un groupe d'espacement.
+La distance par source est bornée entre 0 et 512 blocs. Les spots d'autres sources et les spots naturels restent soumis à la distance minimale globale configurée. Le spot conserve la distance demandée lors de sa création; un appel ultérieur ne peut donc pas relâcher celle de l'événement. Avec `despawnWhenNoPlayers=false`, un spot reste enregistré dans un chunk déchargé jusqu'à son expiration, mais ne peut pas être consommé avant le rechargement de son chunk. L'ancien overload `createSpot(..., lifetimeTicks, sourceId)` conserve ses valeurs de distance et suppression anticipée. Une source `null` ne forme pas un groupe d'espacement.
 
 La définition peut être inspectée avant la création :
 
