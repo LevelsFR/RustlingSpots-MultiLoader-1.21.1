@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -25,6 +26,9 @@ public final class RustlingSpot {
     private final int ambientVariant;
     private final boolean shiny;
     private final boolean custom;
+    private final ResourceLocation ambientSoundId;
+    private final int lifetimeTicks;
+    private final ResourceLocation sourceId;
 
     public RustlingSpot(
             UUID id,
@@ -41,19 +45,44 @@ public final class RustlingSpot {
             boolean shiny,
             boolean custom
     ) {
-        this.id = id;
-        this.dimension = dimension;
-        this.position = position;
-        this.family = family;
-        this.pokemonFamily = pokemonFamily;
+        this(id, dimension, position, family, pokemonFamily, lootFamily, spotId, customDisplayName, particles,
+                createdTick, ambientVariant, shiny, custom, null, 0, null);
+    }
+
+    public RustlingSpot(
+            UUID id,
+            ResourceKey<Level> dimension,
+            BlockPos position,
+            RustlingSpotFamily family,
+            String pokemonFamily,
+            String lootFamily,
+            ResourceLocation spotId,
+            String customDisplayName,
+            List<WeightedParticleReference> particles,
+            long createdTick,
+            int ambientVariant,
+            boolean shiny,
+            boolean custom,
+            ResourceLocation ambientSoundId,
+            int lifetimeTicks,
+            ResourceLocation sourceId
+    ) {
+        this.id = java.util.Objects.requireNonNull(id, "id");
+        this.dimension = java.util.Objects.requireNonNull(dimension, "dimension");
+        this.position = java.util.Objects.requireNonNull(position, "position").immutable();
+        this.family = java.util.Objects.requireNonNull(family, "family");
+        this.pokemonFamily = java.util.Objects.requireNonNull(pokemonFamily, "pokemonFamily");
         this.lootFamily = lootFamily;
-        this.spotId = spotId;
+        this.spotId = java.util.Objects.requireNonNull(spotId, "spotId");
         this.customDisplayName = customDisplayName;
         this.particles = particles == null ? List.of() : List.copyOf(particles);
         this.createdTick = createdTick;
         this.ambientVariant = ambientVariant;
         this.shiny = shiny;
         this.custom = custom;
+        this.ambientSoundId = ambientSoundId;
+        this.lifetimeTicks = Math.max(0, lifetimeTicks);
+        this.sourceId = sourceId;
     }
 
     public UUID getId() {
@@ -102,6 +131,19 @@ public final class RustlingSpot {
 
     public boolean isCustom() {
         return custom;
+    }
+
+    public Optional<ResourceLocation> getAmbientSoundId() {
+        return Optional.ofNullable(ambientSoundId);
+    }
+
+    /** Returns zero when the configured server lifetime should be used. */
+    public int getLifetimeTicks() {
+        return lifetimeTicks;
+    }
+
+    public Optional<ResourceLocation> getSourceId() {
+        return Optional.ofNullable(sourceId);
     }
 
     public String displayName() {

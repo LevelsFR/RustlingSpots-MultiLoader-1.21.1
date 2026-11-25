@@ -86,7 +86,9 @@ public final class SpotSpawnSelectionService {
             }
         }
 
-        return CustomSpotDefinitionRegistry.get(id).map(CustomSpotDefinition::template);
+        return CustomSpotDefinitionRegistry.get(id)
+                .filter(definition -> definition.spawnMode() == SpotSpawnMode.NATURAL)
+                .map(CustomSpotDefinition::template);
     }
 
     public static List<String> commandSuggestions() {
@@ -94,7 +96,7 @@ public final class SpotSpawnSelectionService {
         for (RustlingSpotFamily family : RustlingSpotFamily.values()) {
             suggestions.add(family.serializedName());
         }
-        suggestions.addAll(CustomSpotDefinitionRegistry.idsForSuggestions());
+        suggestions.addAll(CustomSpotDefinitionRegistry.naturalIdsForSuggestions());
         suggestions.sort(String::compareTo);
         return suggestions;
     }

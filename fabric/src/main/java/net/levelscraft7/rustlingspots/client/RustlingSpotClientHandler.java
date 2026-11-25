@@ -10,7 +10,9 @@ import net.levelscraft7.rustlingspots.spot.WeightedParticleReference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 
@@ -70,6 +72,7 @@ public final class RustlingSpotClientHandler {
         private final BlockPos pos;
         private final RustlingSpotFamily family;
         private final int ambientVariant;
+        private final SoundEvent ambientSound;
         private final boolean shiny;
         private final List<WeightedParticleReference> particles;
         private boolean approachCuePlayed;
@@ -79,6 +82,8 @@ public final class RustlingSpotClientHandler {
             this.pos = packet.pos();
             this.family = packet.family();
             this.ambientVariant = packet.ambientVariant();
+            this.ambientSound = packet.ambientSoundId() == null
+                    ? null : BuiltInRegistries.SOUND_EVENT.getOptional(packet.ambientSoundId()).orElse(null);
             this.shiny = packet.shiny();
             this.particles = packet.particles() == null ? List.of() : List.copyOf(packet.particles());
             this.approachCuePlayed = !playApproachCue;
@@ -102,7 +107,8 @@ public final class RustlingSpotClientHandler {
                 if (mc.level != null) {
                     float pitch = 0.92F + mc.level.random.nextFloat() * 0.16F;
                     mc.level.playLocalSound(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D,
-                            RustlingSoundResolver.ambientVariant(ambientVariant), SoundSource.AMBIENT, 0.22F, pitch, false);
+                            ambientSound != null ? ambientSound : RustlingSoundResolver.ambientVariant(ambientVariant),
+                            SoundSource.AMBIENT, 0.22F, pitch, false);
                     approachCuePlayed = true;
                 }
             }

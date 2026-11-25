@@ -36,9 +36,11 @@ Rustling Spots does **not** modify world generation, making it safe to add to ex
 - Player and server spot limits designed for multiplayer environments
 - Admin spawning, reload, statistics and scan/debug commands
 - Datapack-driven **custom spot definitions**
+- Addon API for creating, querying and removing spots with lifecycle callbacks
+- **External-only** definitions that addons can trigger without natural spawning
 - Custom biome, block and dimension rules
 - Custom Pokémon and loot families
-- Weighted custom particles and spot selection
+- Weighted custom particles, sounds and spot selection
 - Active spot resynchronization after login, respawn and dimension changes
 - Invalid JSON configuration backup before defaults are regenerated
 - No worldgen changes
@@ -146,12 +148,17 @@ English is the primary documentation language for this repository.
 - [Rustling Spots Wiki, Français](./docs/rustling-spots-wiki-fr.md)
 - [Custom Spot Definitions Guide, English](./docs/custom-spot-definitions-guide-en.md)
 - [Custom Spot Definitions Guide, Français](./docs/custom-spot-definitions-guide.md)
+- [Addon API Guide, English](./docs/addon-api-guide-en.md)
+- [Guide de l'API Addon, Français](./docs/addon-api-guide-fr.md)
 
 A ready-to-use example datapack is available in:
 
 ```text
 example_datapacks/custom_swamp_spot_pack
 ```
+
+An external-only definition example is in `example_datapacks/external_only_spot_pack`.
+The matching Java integration sample is in `examples/java/RustlingSpotsAddonExample.java`.
 
 Official example datapack downloads:
 
@@ -180,7 +187,7 @@ This repository is a multi-loader project built around Architectury:
 └── example_datapacks/
 ```
 
-The current source tree targets **Rustling Spots 6.0**, **Minecraft 1.21.1**, **Java 21**, and **Cobblemon 1.8.0+**.
+The current source tree targets **Rustling Spots 6.1**, **Minecraft 1.21.1**, **Java 21**, and **Cobblemon 1.8.0+**.
 
 Existing v4.x pool files remain in place when upgrading. Rustling keeps its historical species aliases, validates entries again after Cobblemon has loaded or reloaded its 1.8 species registry, and skips only invalid entries without replacing customized pools.
 

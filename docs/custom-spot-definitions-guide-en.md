@@ -246,6 +246,8 @@ data/<namespace>/rustling_spots/spot_definitions/<name>.json
 | `id` | Yes | Full custom spot identifier. |
 | `display_name` | No | Readable name shown in messages and debug output. |
 | `visual_family` | No | Visual family used for rendering and fallback particles. If missing or invalid, the spot keeps the historical `grass` fallback. |
+| `spawn_mode` | No | `natural` (default) includes the definition in natural selection; `external_only` reserves it for addon-triggered creation. |
+| `ambient_sound` | No | Registered sound-event ID for the approach cue. Missing or unavailable IDs use the visual family's default sound. |
 | `priority` | Yes | Priority used when multiple spots match the same location. |
 | `weight` | Yes | Selection weight between spots of the same priority. Must be > `0`. |
 | `dimensions` | No | Allowed dimensions list. If missing or invalid, the spot is restricted to the Overworld. |
@@ -287,7 +289,15 @@ Valid examples:
 - `pokemon_family` must exist, otherwise the definition is ignored
 - `loot_family` may be unknown, but in that case the spot falls back to global loot
 - `display_name` is optional
-- `visual_family` is optional and accepts `grass`, `sand`, `water`, `snow`, `leaves`, `cave`, `netherflamme`, `soulflame` or `flying`
+- `visual_family` is optional and accepts `grass`, `sand`, `water`, `underwater`, `snow`, `leaves`, `cave`, `geode`, `end`, `netherflamme`, `soulflame` or `flying`
+- `spawn_mode` is optional; omitted values keep the existing natural-spawn behavior
+- `ambient_sound` must refer to a sound event registered by Minecraft or a mod
+
+### Natural and external-only modes
+
+The default `natural` mode preserves the behavior of definitions made before v6.1. Set `spawn_mode` to `external_only` when an addon owns the trigger and should decide when and where the spot appears. The definition still provides its visual family, particles, Pokémon family and loot family. Addons create it through `RustlingSpotAddonApi.createSpot`; see the [Addon API guide](./addon-api-guide-en.md) and [external-only example datapack](../example_datapacks/external_only_spot_pack).
+
+For an addon-specific approach sound, set `ambient_sound` to a registered `SoundEvent` ID. The addon must register that event and provide client sound assets. The ID is sent through Rustling Spots' normal spot sync packet; clients without the event use the visual-family fallback.
 - `dimensions` is optional
 - `particles` is optional
 

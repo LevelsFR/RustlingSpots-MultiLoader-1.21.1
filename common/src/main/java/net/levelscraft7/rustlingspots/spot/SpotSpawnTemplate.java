@@ -55,7 +55,19 @@ public record SpotSpawnTemplate(
         );
     }
 
-    public RustlingSpot createSpot(UUID id, ResourceKey<Level> dimension, BlockPos position, long createdTick, int ambientVariant, boolean shiny) {
+    public RustlingSpot createSpot(UUID id, ResourceKey<Level> dimension, BlockPos position, long createdTick,
+                                   int ambientVariant, boolean shiny) {
+        return createSpot(id, dimension, position, createdTick, ambientVariant, shiny, null, 0, null);
+    }
+
+    public RustlingSpot createSpot(UUID id, ResourceKey<Level> dimension, BlockPos position, long createdTick,
+                                   int ambientVariant, boolean shiny, int lifetimeTicks, ResourceLocation sourceId) {
+        return createSpot(id, dimension, position, createdTick, ambientVariant, shiny, null, lifetimeTicks, sourceId);
+    }
+
+    public RustlingSpot createSpot(UUID id, ResourceKey<Level> dimension, BlockPos position, long createdTick,
+                                   int ambientVariant, boolean shiny, ResourceLocation ambientSoundId,
+                                   int lifetimeTicks, ResourceLocation sourceId) {
         return new RustlingSpot(
                 id,
                 dimension,
@@ -69,7 +81,10 @@ public record SpotSpawnTemplate(
                 createdTick,
                 ambientVariant,
                 shiny,
-                custom
+                custom,
+                ambientSoundId,
+                lifetimeTicks,
+                sourceId
         );
     }
 }

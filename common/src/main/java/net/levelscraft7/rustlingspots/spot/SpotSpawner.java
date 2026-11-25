@@ -3,6 +3,7 @@ package net.levelscraft7.rustlingspots.spot;
 import net.levelscraft7.rustlingspots.compat.CobblemonRaidDensCompat;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsServerConfig;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -189,10 +190,13 @@ public class SpotSpawner {
             UUID id = UUID.randomUUID();
             int variant = RustlingSoundResolver.indexForFamily(template.visualFamily());
             boolean shiny = random.nextDouble() < RustlingSpotsServerConfig.GENERAL.shinySpotChance();
-            RustlingSpot spot = template.createSpot(id, level.dimension(), candidate, level.getGameTime(), variant, shiny);
+            ResourceLocation ambientSoundId = CustomSpotDefinitionRegistry.get(template.spotId())
+                    .flatMap(CustomSpotDefinition::ambientSoundId)
+                    .orElse(null);
+            RustlingSpot spot = template.createSpot(id, level.dimension(), candidate, level.getGameTime(),
+                    variant, shiny, ambientSoundId, 0, null);
 
-            RustlingSpotService.MANAGER.add(spot);
-            RustlingSpotSyncService.broadcastSpawn(level, spot);
+            RustlingSpotLifecycleService.add(level, spot);
 
             if (RustlingSpotsServerConfig.GENERAL.loggingEnabled()) {
                 LOGGER.info("[Spawn] Spawned spot at {} (spotId={}, family={}, block={}, biome={}, playerSubmerged={}, playerUnderground={}, underwaterSearch={})",

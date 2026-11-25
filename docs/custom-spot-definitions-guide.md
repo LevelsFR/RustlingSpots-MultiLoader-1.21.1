@@ -246,6 +246,8 @@ data/<namespace>/rustling_spots/spot_definitions/<nom>.json
 | `id` | Oui | Identifiant complet du custom spot. |
 | `display_name` | Non | Nom lisible affiche dans les messages et commandes de debug. |
 | `visual_family` | Non | Famille visuelle utilisee pour le rendu et les particules de fallback. Si absent ou invalide, le spot garde le fallback historique `grass`. |
+| `spawn_mode` | Non | `natural` (defaut) ajoute la definition a la selection naturelle; `external_only` reserve sa creation aux addons. |
+| `ambient_sound` | Non | Identifiant d'un evenement sonore enregistre pour le son d'approche. Sans identifiant disponible, le son par defaut de la famille visuelle est utilise. |
 | `priority` | Oui | Priorite utilisee quand plusieurs spots matchent au meme endroit. |
 | `weight` | Oui | Poids de selection entre spots de meme priorite. Doit etre > `0`. |
 | `dimensions` | Non | Liste de dimensions autorisees. Si absent ou invalide, le spot est limite a l'Overworld. |
@@ -287,9 +289,17 @@ Exemples valides :
 - `pokemon_family` doit exister, sinon la definition est ignoree
 - `loot_family` peut etre inconnue, mais dans ce cas le spot retombe sur le global loot
 - `display_name` est optionnel
-- `visual_family` est optionnel et accepte `grass`, `sand`, `water`, `snow`, `leaves`, `cave`, `netherflamme`, `soulflame` ou `flying`
+- `visual_family` est optionnel et accepte `grass`, `sand`, `water`, `underwater`, `snow`, `leaves`, `cave`, `geode`, `end`, `netherflamme`, `soulflame` ou `flying`
 - `dimensions` est optionnel
 - `particles` est optionnel
+- `spawn_mode` est optionnel; sans ce champ, le comportement naturel existant est conserve
+- `ambient_sound` doit identifier un evenement sonore enregistre par Minecraft ou un mod
+
+### Modes natural et external-only
+
+Le mode `natural`, utilise par defaut, conserve le comportement des definitions creees avant la v6.1. Utilisez `spawn_mode: "external_only"` lorsqu'un addon controle le declencheur et doit choisir quand et ou le spot apparait. La definition fournit toujours sa famille visuelle, ses particules et ses familles Pokemon et loot. L'addon le cree avec `RustlingSpotAddonApi.createSpot`; consultez le [guide de l'API Addon](./addon-api-guide-fr.md) et le [datapack external-only d'exemple](../example_datapacks/external_only_spot_pack).
+
+Pour un son d'approche propre a l'addon, utilisez `ambient_sound` avec l'identifiant d'un `SoundEvent` enregistre. L'addon doit enregistrer cet evenement et fournir les ressources sonores client. L'identifiant utilise le paquet de synchronisation normal de Rustling Spots; les clients sans cet evenement utilisent le son de fallback de la famille visuelle.
 
 ### Fallbacks importants
 

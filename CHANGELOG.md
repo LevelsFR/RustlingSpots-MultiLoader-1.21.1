@@ -1,3 +1,15 @@
+# Rustling Spots v6.1
+
+## New
+
+- Addons can create spots at validated positions with custom definitions, lifetimes and source IDs, then query or remove them through the public API.
+- Addon lifecycle callbacks report creation, interaction, expiration and removal.
+- Custom definitions support an `external_only` mode, custom ambient sounds and the existing visual-family and particle systems.
+
+## Changes
+
+- Existing datapack definitions remain natural-spawn definitions by default and keep their current behavior.
+
 # Rustling Spots v6.0
 
 ## New

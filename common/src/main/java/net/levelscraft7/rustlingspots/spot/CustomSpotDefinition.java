@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -23,6 +24,34 @@ public final class CustomSpotDefinition {
     private final Set<ResourceKey<Level>> dimensions;
     private final List<BlockMatcher> blocks;
     private final List<BiomeMatcher> biomes;
+    private final SpotSpawnMode spawnMode;
+    private final ResourceLocation ambientSoundId;
+
+    public CustomSpotDefinition(
+            SpotSpawnTemplate template,
+            Set<ResourceKey<Level>> dimensions,
+            List<BlockMatcher> blocks,
+            List<BiomeMatcher> biomes,
+            SpotSpawnMode spawnMode,
+            ResourceLocation ambientSoundId
+    ) {
+        this.template = template;
+        this.dimensions = Set.copyOf(dimensions);
+        this.blocks = List.copyOf(blocks);
+        this.biomes = List.copyOf(biomes);
+        this.spawnMode = spawnMode == null ? SpotSpawnMode.NATURAL : spawnMode;
+        this.ambientSoundId = ambientSoundId;
+    }
+
+    public CustomSpotDefinition(
+            SpotSpawnTemplate template,
+            Set<ResourceKey<Level>> dimensions,
+            List<BlockMatcher> blocks,
+            List<BiomeMatcher> biomes,
+            SpotSpawnMode spawnMode
+    ) {
+        this(template, dimensions, blocks, biomes, spawnMode, null);
+    }
 
     public CustomSpotDefinition(
             SpotSpawnTemplate template,
@@ -30,10 +59,7 @@ public final class CustomSpotDefinition {
             List<BlockMatcher> blocks,
             List<BiomeMatcher> biomes
     ) {
-        this.template = template;
-        this.dimensions = Set.copyOf(dimensions);
-        this.blocks = List.copyOf(blocks);
-        this.biomes = List.copyOf(biomes);
+        this(template, dimensions, blocks, biomes, SpotSpawnMode.NATURAL, null);
     }
 
     public ResourceLocation id() {
@@ -42,6 +68,14 @@ public final class CustomSpotDefinition {
 
     public SpotSpawnTemplate template() {
         return template;
+    }
+
+    public SpotSpawnMode spawnMode() {
+        return spawnMode;
+    }
+
+    public Optional<ResourceLocation> ambientSoundId() {
+        return Optional.ofNullable(ambientSoundId);
     }
 
     public boolean matches(Level level, BlockPos groundPos, BlockState groundState) {

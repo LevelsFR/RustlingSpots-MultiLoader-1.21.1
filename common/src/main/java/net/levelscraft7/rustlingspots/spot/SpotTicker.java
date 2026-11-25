@@ -1,6 +1,7 @@
 package net.levelscraft7.rustlingspots.spot;
 
 import net.levelscraft7.rustlingspots.api.RustlingSpotAddonApi;
+import net.levelscraft7.rustlingspots.api.RustlingSpotLifecycleEvent;
 import net.levelscraft7.rustlingspots.api.RustlingSpotInteractionResult;
 import net.levelscraft7.rustlingspots.compat.CobblemonRaidDensCompat;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsServerConfig;
@@ -27,20 +28,21 @@ public class SpotTicker {
     private void tickLevel(ServerLevel level) {
         if (!RustlingSpotsServerConfig.GENERAL.enabled()) {
             List<RustlingSpot> toRemove = new ArrayList<>(RustlingSpotService.MANAGER.getAll(level.dimension()));
-            toRemove.forEach(spot -> removeSpot(level, spot));
+            toRemove.forEach(spot -> removeSpot(level, spot, RustlingSpotLifecycleEvent.RemovalReason.CLEANUP, null));
             return;
         }
 
         if (!CobblemonRaidDensCompat.shouldAllowSpots(level)) {
             List<RustlingSpot> toRemove = new ArrayList<>(RustlingSpotService.MANAGER.getAll(level.dimension()));
-            toRemove.forEach(spot -> removeSpot(level, spot));
+            toRemove.forEach(spot -> removeSpot(level, spot, RustlingSpotLifecycleEvent.RemovalReason.CLEANUP, null));
             return;
         }
 
-        List<RustlingSpot> pendingRemoval = new ArrayList<>();
+        List<PendingRemoval> pendingRemoval = new ArrayList<>();
         for (RustlingSpot spot : RustlingSpotService.MANAGER.getAll(level.dimension())) {
-            if (shouldDespawn(level, spot)) {
-                pendingRemoval.add(spot);
+            RustlingSpotLifecycleEvent.RemovalReason despawnReason = despawnReason(level, spot);
+            if (despawnReason != null) {
+                pendingRemoval.add(new PendingRemoval(spot, despawnReason, null));
                 continue;
             }
 
@@ -52,32 +54,36 @@ public class SpotTicker {
                 } else if (result == RustlingSpotInteractionResult.PASS) {
                     SpotRewardResolver.resolve(level, player, spot);
                 }
-                pendingRemoval.add(spot);
+                pendingRemoval.add(new PendingRemoval(spot,
+                        RustlingSpotLifecycleEvent.RemovalReason.INTERACTION, player));
             }
         }
 
-        pendingRemoval.forEach(spot -> removeSpot(level, spot));
+        pendingRemoval.forEach(removal -> removeSpot(level, removal.spot(), removal.reason(), removal.player()));
     }
 
-    private boolean shouldDespawn(ServerLevel level, RustlingSpot spot) {
+    private RustlingSpotLifecycleEvent.RemovalReason despawnReason(ServerLevel level, RustlingSpot spot) {
         if (!level.hasChunk(spot.getPosition().getX() >> 4, spot.getPosition().getZ() >> 4)) {
-            return true;
+            return RustlingSpotLifecycleEvent.RemovalReason.CLEANUP;
         }
 
         long age = level.getGameTime() - spot.getCreatedTick();
-        if (age > RustlingSpotsServerConfig.GENERAL.spotLifetimeTicks()) {
-            return true;
+        int lifetimeTicks = spot.getLifetimeTicks() > 0
+                ? spot.getLifetimeTicks() : RustlingSpotsServerConfig.GENERAL.spotLifetimeTicks();
+        if (age > lifetimeTicks) {
+            return RustlingSpotLifecycleEvent.RemovalReason.EXPIRED;
         }
 
         double maxDistance = RustlingSpotsServerConfig.GENERAL.playerSpotRadius();
         double maxDistanceSq = maxDistance * maxDistance;
-        return level.players().stream()
+        boolean noNearbyPlayer = level.players().stream()
                 .filter(p -> !p.isSpectator())
                 .noneMatch(p -> p.distanceToSqr(
                         spot.getPosition().getX() + 0.5,
                         spot.getPosition().getY() + 0.5,
                         spot.getPosition().getZ() + 0.5
                 ) <= maxDistanceSq);
+        return noNearbyPlayer ? RustlingSpotLifecycleEvent.RemovalReason.CLEANUP : null;
     }
 
     private ServerPlayer findInteractingPlayer(ServerLevel level, RustlingSpot spot) {
@@ -103,8 +109,12 @@ public class SpotTicker {
         return null;
     }
 
-    private void removeSpot(ServerLevel level, RustlingSpot spot) {
-        RustlingSpotService.MANAGER.remove(spot);
-        RustlingSpotSyncService.broadcastRemove(level, spot);
+    private void removeSpot(ServerLevel level, RustlingSpot spot,
+                            RustlingSpotLifecycleEvent.RemovalReason reason, ServerPlayer player) {
+        RustlingSpotLifecycleService.remove(level, spot, reason, player);
+    }
+
+    private record PendingRemoval(RustlingSpot spot, RustlingSpotLifecycleEvent.RemovalReason reason,
+                                  ServerPlayer player) {
     }
 }

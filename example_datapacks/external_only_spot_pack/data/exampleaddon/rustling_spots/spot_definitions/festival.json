@@ -1,0 +1,19 @@
+{
+  "format_version": 1,
+  "id": "exampleaddon:festival",
+  "display_name": "Festival Rustle",
+  "spawn_mode": "external_only",
+  "visual_family": "leaves",
+  "ambient_sound": "minecraft:block.amethyst_block.chime",
+  "priority": 0,
+  "weight": 1,
+  "dimensions": ["minecraft:overworld"],
+  "biomes": ["#minecraft:is_forest"],
+  "blocks": ["#minecraft:leaves"],
+  "pokemon_family": "grass",
+  "loot_family": "grass",
+  "particles": [
+    { "type": "minecraft:happy_villager", "weight": 1 },
+    { "type": "rustlingspots:grass_burst", "weight": 1 }
+  ]
+}

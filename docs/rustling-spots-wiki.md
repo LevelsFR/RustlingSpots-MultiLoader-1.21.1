@@ -1,6 +1,6 @@
 # Rustling Spots Wiki
 
-> **Documentation target:** Rustling Spots **v6.0** for Minecraft **1.21.1** and Cobblemon **1.8.0+**.
+> **Documentation target:** Rustling Spots **v6.1** for Minecraft **1.21.1** and Cobblemon **1.8.0+**.
 >
 > Français: [rustling-spots-wiki-fr.md](./rustling-spots-wiki-fr.md)
 
@@ -25,6 +25,8 @@ Rustling Spots does **not** modify world generation, making it safe to add to ex
 - Pokémon encounters use Cobblemon
 - Loot can be themed by spot family
 - Spots are temporary and disappear after interaction or lifecycle cleanup
+- Addons can create spots at chosen positions and receive lifecycle events
+- External-only custom definitions stay out of natural spawning until an addon triggers them
 - Existing worlds do not need to be regenerated
 
 ### Built-in spot families
@@ -215,30 +217,38 @@ A custom datapack can define:
 - Pokémon families
 - loot families
 - weighted particles
+- natural or external-only spawn mode
+- optional registered ambient sound
 - shiny options
 - visual family
 
-### `visual_family` in v4.3
+### Visual family, particles and sounds
 
 Since v4.3, custom spots can use the optional `visual_family` field to select the built-in rendering base that best matches the spot.
 
 Supported values are:
 
 ```text
-grass
-sand
-water
-snow
-leaves
-cave
-netherflamme
-soulflame
-flying
+grass, sand, water, underwater, snow, leaves, cave, geode, end,
+netherflamme, soulflame, flying
 ```
 
 If `visual_family` is missing or invalid, the custom spot keeps the historical `grass` visual fallback.
 
 Custom particles can still be used to give a datapack spot its own stronger identity.
+
+The optional `spawn_mode` field accepts `natural` or `external_only`. Existing definitions without this field remain natural. The `ambient_sound` field can select a registered sound event; missing client registrations fall back to the visual family's sound.
+
+## Addon API
+
+The shared Java API creates a spot from a loaded custom definition at an exact block position and accepts an independent lifetime and optional source ID. Addons can query active spots by dimension, remove spots through the normal remove packet, and listen for `CREATED`, `INTERACTED`, `EXPIRED` and `REMOVED` events. Creation checks that the target chunk is loaded, validates the position against the definition, rejects nearby duplicates and respects the configured global cap.
+
+```java
+RustlingSpotAddonApi.createSpot(level, position, definitionId, 20 * 60, sourceId);
+RustlingSpotAddonApi.registerLifecycleCallback(event -> handle(event));
+```
+
+The existing interaction callback remains compatible and can return `PASS` to keep the normal Pokémon and loot rewards. See the [Addon API Guide](./addon-api-guide-en.md) and the [external-only example](../example_datapacks/external_only_spot_pack).
 
 ### Datapack structure
 
@@ -267,6 +277,9 @@ example_datapacks/custom_swamp_spot_pack
 ```
 
 The example contains a custom spot, a custom Pokémon family, a custom loot family and mixed particle usage.
+
+An [external-only example datapack](../example_datapacks/external_only_spot_pack) demonstrates an addon-triggered definition.
+The corresponding [Java addon example](../examples/java/RustlingSpotsAddonExample.java) shows creation and callbacks.
 
 Official example datapack downloads:
 

@@ -30,27 +30,37 @@ public class RustlingSpotManager {
     }
 
     public void add(RustlingSpot spot) {
+        addIfAbsent(spot);
+    }
+
+    public boolean addIfAbsent(RustlingSpot spot) {
         DimensionIndex index = perDimension.computeIfAbsent(spot.getDimension(), ignored -> new DimensionIndex());
-        RustlingSpot previous = index.put(spot);
-        if (previous == null) {
+        if (index.putIfAbsent(spot)) {
             totalSpots.incrementAndGet();
+            return true;
         }
+        return false;
     }
 
     public void remove(RustlingSpot spot) {
+        removeIfPresent(spot);
+    }
+
+    public boolean removeIfPresent(RustlingSpot spot) {
         DimensionIndex index = perDimension.get(spot.getDimension());
         if (index == null) {
-            return;
+            return false;
         }
 
-        RustlingSpot removed = index.remove(spot.getId());
-        if (removed != null) {
+        boolean removed = index.remove(spot);
+        if (removed) {
             totalSpots.decrementAndGet();
         }
 
         if (index.isEmpty()) {
             perDimension.remove(spot.getDimension(), index);
         }
+        return removed;
     }
 
     public boolean hasSpotInChunk(ResourceKey<Level> dimension, ChunkPos chunkPos) {
@@ -150,30 +160,30 @@ public class RustlingSpotManager {
             return byId.get(id);
         }
 
-        RustlingSpot put(RustlingSpot spot) {
+        boolean putIfAbsent(RustlingSpot spot) {
             if (readOnly) {
                 throw new UnsupportedOperationException("Cannot mutate empty spot index");
             }
 
-            RustlingSpot previous = byId.put(spot.getId(), spot);
+            RustlingSpot previous = byId.putIfAbsent(spot.getId(), spot);
             if (previous != null) {
-                removeFromChunk(previous);
+                return false;
             }
 
             byChunk.computeIfAbsent(chunkKey(new ChunkPos(spot.getPosition()).x, new ChunkPos(spot.getPosition()).z),
                             ignored -> new ConcurrentHashMap<>())
                     .put(spot.getId(), spot);
-            return previous;
+            return true;
         }
 
-        RustlingSpot remove(UUID id) {
+        boolean remove(RustlingSpot spot) {
             if (readOnly) {
-                return null;
+                return false;
             }
 
-            RustlingSpot removed = byId.remove(id);
-            if (removed != null) {
-                removeFromChunk(removed);
+            boolean removed = byId.remove(spot.getId(), spot);
+            if (removed) {
+                removeFromChunk(spot);
             }
             return removed;
         }

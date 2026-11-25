@@ -10,7 +10,6 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import net.levelscraft7.rustlingspots.compat.CobblemonRaidDensCompat;
 import net.levelscraft7.rustlingspots.config.RustlingSpotsServerConfig;
 import net.levelscraft7.rustlingspots.network.packet.RustlingMessagePreferencesS2CPacket;
-import net.levelscraft7.rustlingspots.network.packet.RustlingSpotSpawnPacket;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -24,6 +23,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Arrays;
@@ -234,11 +234,14 @@ public final class RustlingSpotCommands {
 
         UUID id = UUID.randomUUID();
         int variant = RustlingSoundResolver.indexForFamily(template.visualFamily());
-        RustlingSpot spot = template.createSpot(id, level.dimension(), pos, level.getGameTime(), variant, shiny);
-        RustlingSpotService.MANAGER.add(spot);
-
-        for (ServerPlayer p : level.players()) {
-            p.connection.send(new ClientboundCustomPayloadPacket(new RustlingSpotSpawnPacket(spot)));
+        ResourceLocation ambientSoundId = CustomSpotDefinitionRegistry.get(template.spotId())
+                .flatMap(CustomSpotDefinition::ambientSoundId)
+                .orElse(null);
+        RustlingSpot spot = template.createSpot(id, level.dimension(), pos, level.getGameTime(),
+                variant, shiny, ambientSoundId, 0, null);
+        if (!RustlingSpotLifecycleService.add(level, spot)) {
+            source.sendFailure(Component.literal("A rustling spot with the generated id already exists."));
+            return 0;
         }
 
         RustlingSpotService.INTERACTION_BLOCKER.blockForTicks(player.getUUID(), level.getGameTime(), SPAWN_INTERACTION_DELAY_TICKS);

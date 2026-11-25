@@ -1,13 +1,30 @@
 package net.levelscraft7.rustlingspots.api;
 
 import net.levelscraft7.rustlingspots.spot.RustlingSpot;
+import net.levelscraft7.rustlingspots.spot.CustomSpotDefinition;
+import net.levelscraft7.rustlingspots.spot.CustomSpotDefinitionRegistry;
+import net.levelscraft7.rustlingspots.spot.RustlingSoundResolver;
+import net.levelscraft7.rustlingspots.spot.RustlingSpotLifecycleService;
+import net.levelscraft7.rustlingspots.spot.RustlingSpotService;
+import net.levelscraft7.rustlingspots.spot.RustlingSpotFamily;
+import net.levelscraft7.rustlingspots.config.RustlingSpotsServerConfig;
+import net.levelscraft7.rustlingspots.compat.CobblemonRaidDensCompat;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.block.state.BlockState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -16,13 +33,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class RustlingSpotAddonApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(RustlingSpotAddonApi.class);
     private static final List<RustlingSpotInteractionCallback> INTERACTION_CALLBACKS = new CopyOnWriteArrayList<>();
+    private static final List<RustlingSpotLifecycleCallback> LIFECYCLE_CALLBACKS = new CopyOnWriteArrayList<>();
+    private static final ThreadLocal<Set<RustlingSpot>> CALLBACKS_IN_PROGRESS = ThreadLocal.withInitial(HashSet::new);
 
     private RustlingSpotAddonApi() {
     }
 
     /**
      * Registers a server-thread callback invoked after a rustling spot interaction is validated
-     * but before normal reward resolution.
+     * but before normal reward resolution. The active spot cannot be removed through this API
+     * while the interaction callbacks are running; return a consuming result to override it.
      *
      * <p>Callbacks run in registration order. The first result other than
      * {@link RustlingSpotInteractionResult#PASS} wins. Addons must not manually remove the spot.
@@ -32,33 +52,205 @@ public final class RustlingSpotAddonApi {
         INTERACTION_CALLBACKS.add(Objects.requireNonNull(callback, "callback"));
     }
 
+    /**
+     * Creates a spot from a loaded custom definition at the requested spot position.
+     * Calls must run on the server thread. Invalid, unloaded, occupied, duplicate, or
+     * over-limit positions are rejected without loading chunks.
+     *
+     * @param lifetimeTicks positive lifetime in ticks
+     * @param sourceId optional namespaced addon or event identifier; pass {@code null} when unused
+     */
+    public static Optional<RustlingSpot> createSpot(ServerLevel level, BlockPos position,
+                                                    ResourceLocation definitionId,
+                                                    int lifetimeTicks,
+                                                    ResourceLocation sourceId) {
+        Objects.requireNonNull(level, "level");
+        if (position == null || definitionId == null || lifetimeTicks <= 0 || !level.getServer().isSameThread()) {
+            return Optional.empty();
+        }
+        if (!RustlingSpotsServerConfig.GENERAL.enabled()
+                || !CobblemonRaidDensCompat.shouldAllowSpots(level)
+                || RustlingSpotService.MANAGER.totalCount() >= RustlingSpotsServerConfig.GENERAL.maxSpotsTotal()) {
+            return Optional.empty();
+        }
+
+        BlockPos spotPosition = position.immutable();
+        if (spotPosition.getY() < level.getMinBuildHeight()
+                || spotPosition.getY() >= level.getMaxBuildHeight()
+                || !level.getWorldBorder().isWithinBounds(spotPosition)
+                || !level.hasChunk(spotPosition.getX() >> 4, spotPosition.getZ() >> 4)) {
+            return Optional.empty();
+        }
+
+        Optional<CustomSpotDefinition> optionalDefinition = CustomSpotDefinitionRegistry.get(definitionId);
+        if (optionalDefinition.isEmpty()) {
+            return Optional.empty();
+        }
+        CustomSpotDefinition definition = optionalDefinition.get();
+        BlockState spotState = level.getBlockState(spotPosition);
+        boolean waterPosition = spotState.getFluidState().is(FluidTags.WATER)
+                && spotState.getFluidState().isSource();
+        boolean underwaterDefinition = definition.template().visualFamily() == RustlingSpotFamily.UNDERWATER;
+        if (underwaterDefinition != waterPosition || (!underwaterDefinition && !spotState.isAir())) {
+            return Optional.empty();
+        }
+
+        BlockPos groundPosition = underwaterDefinition ? spotPosition : spotPosition.below();
+        if (groundPosition.getY() < level.getMinBuildHeight()
+                || !level.hasChunk(groundPosition.getX() >> 4, groundPosition.getZ() >> 4)) {
+            return Optional.empty();
+        }
+        BlockState groundState = level.getBlockState(groundPosition);
+        if (!definition.matches(level, groundPosition, groundState)) {
+            return Optional.empty();
+        }
+
+        if (RustlingSpotService.MANAGER.countWithin(level.dimension(), spotPosition, 0.0D) > 0L) {
+            return Optional.empty();
+        }
+        double minimumDistance = Math.max(0.0D, RustlingSpotsServerConfig.GENERAL.minDistanceBetweenSpots());
+        if (minimumDistance > 0.0D && !RustlingSpotService.MANAGER.isFarEnough(
+                level.dimension(), minimumDistance * minimumDistance, spotPosition)) {
+            return Optional.empty();
+        }
+
+        var template = definition.template();
+        boolean shiny = level.random.nextDouble() < RustlingSpotsServerConfig.GENERAL.shinySpotChance();
+        RustlingSpot spot = template.createSpot(
+                UUID.randomUUID(), level.dimension(), spotPosition, level.getGameTime(),
+                RustlingSoundResolver.indexForFamily(template.visualFamily()), shiny,
+                definition.ambientSoundId().orElse(null), lifetimeTicks, sourceId);
+        return RustlingSpotLifecycleService.add(level, spot) ? Optional.of(spot) : Optional.empty();
+    }
+
+    public static Optional<RustlingSpot> createSpot(ServerLevel level, BlockPos position,
+                                                    ResourceLocation definitionId,
+                                                    int lifetimeTicks) {
+        return createSpot(level, position, definitionId, lifetimeTicks, null);
+    }
+
+    public static Optional<RustlingSpot> getSpot(ServerLevel level, UUID spotId) {
+        if (level == null || spotId == null) {
+            return Optional.empty();
+        }
+        return RustlingSpotService.MANAGER.get(level.dimension(), spotId);
+    }
+
+    /** Returns an immutable snapshot of active spots in this dimension. */
+    public static Collection<RustlingSpot> getSpots(ServerLevel level) {
+        Objects.requireNonNull(level, "level");
+        return List.copyOf(RustlingSpotService.MANAGER.getAll(level.dimension()));
+    }
+
+    /** Removes an active spot and sends the native client removal packet. */
+    public static boolean removeSpot(ServerLevel level, UUID spotId) {
+        if (level == null || spotId == null || !level.getServer().isSameThread()) {
+            return false;
+        }
+        return RustlingSpotService.MANAGER.get(level.dimension(), spotId)
+                .filter(spot -> !isCallbackInProgress(spot))
+                .map(spot -> RustlingSpotLifecycleService.remove(level, spot,
+                        RustlingSpotLifecycleEvent.RemovalReason.ADDON, null))
+                .orElse(false);
+    }
+
+    /** Registers observational creation, interaction, expiration and removal notifications. */
+    public static void registerLifecycleCallback(RustlingSpotLifecycleCallback callback) {
+        LIFECYCLE_CALLBACKS.add(Objects.requireNonNull(callback, "callback"));
+    }
+
+    public static boolean unregisterLifecycleCallback(RustlingSpotLifecycleCallback callback) {
+        return LIFECYCLE_CALLBACKS.remove(callback);
+    }
+
+    public static Optional<CustomSpotDefinition> getCustomSpotDefinition(
+            ResourceLocation definitionId) {
+        return definitionId == null ? Optional.empty() : CustomSpotDefinitionRegistry.get(definitionId);
+    }
+
+    public static void fireLifecycleEvent(RustlingSpotLifecycleEvent event) {
+        if (event == null || !event.level().getServer().isSameThread()
+                || !event.level().dimension().equals(event.spot().getDimension())) {
+            return;
+        }
+        Set<RustlingSpot> activeCallbacks = CALLBACKS_IN_PROGRESS.get();
+        if (!activeCallbacks.add(event.spot())) {
+            return;
+        }
+        try {
+            for (RustlingSpotLifecycleCallback callback : LIFECYCLE_CALLBACKS) {
+                try {
+                    callback.onSpotEvent(event);
+                } catch (Exception exception) {
+                    LOGGER.error("Rustling spot lifecycle callback failed for type {} (spotId={})",
+                            event.type(), event.spot().getSpotId(), exception);
+                }
+            }
+        } finally {
+            clearCallbackInProgress(activeCallbacks, event.spot());
+        }
+    }
+
     public static RustlingSpotInteractionResult fireInteraction(ServerPlayer player, ServerLevel level, RustlingSpot spot) {
-        if (INTERACTION_CALLBACKS.isEmpty()) {
+        if (player == null || level == null || spot == null || !level.getServer().isSameThread()
+                || player.serverLevel() != level || !level.dimension().equals(spot.getDimension())) {
             return RustlingSpotInteractionResult.PASS;
         }
-
-        RustlingSpotInteractionEvent event = RustlingSpotInteractionEvent.of(player, level, spot);
-        for (RustlingSpotInteractionCallback callback : INTERACTION_CALLBACKS) {
-            RustlingSpotInteractionResult result;
-            try {
-                result = callback.onInteract(event);
-            } catch (Exception exception) {
-                LOGGER.error(
-                        "Rustling spot interaction callback failed for player {} at {} in {} (spotId={})",
-                        player.getGameProfile().getName(),
-                        spot.getPosition(),
-                        level.dimension().location(),
-                        spot.getSpotId(),
-                        exception
-                );
-                continue;
-            }
-
-            if (result != null && result != RustlingSpotInteractionResult.PASS) {
-                return result;
-            }
+        if (isCallbackInProgress(spot)) {
+            return RustlingSpotInteractionResult.PASS;
         }
+        fireLifecycleEvent(new RustlingSpotLifecycleEvent(
+                RustlingSpotLifecycleEvent.Type.INTERACTED, level, spot, Optional.of(player), null));
+        Set<RustlingSpot> activeCallbacks = CALLBACKS_IN_PROGRESS.get();
+        if (!activeCallbacks.add(spot)) {
+            return RustlingSpotInteractionResult.PASS;
+        }
+        try {
+            if (INTERACTION_CALLBACKS.isEmpty()) {
+                return RustlingSpotInteractionResult.PASS;
+            }
 
-        return RustlingSpotInteractionResult.PASS;
+            RustlingSpotInteractionEvent event = RustlingSpotInteractionEvent.of(player, level, spot);
+            for (RustlingSpotInteractionCallback callback : INTERACTION_CALLBACKS) {
+                RustlingSpotInteractionResult result;
+                try {
+                    result = callback.onInteract(event);
+                } catch (Exception exception) {
+                    LOGGER.error(
+                            "Rustling spot interaction callback failed for player {} at {} in {} (spotId={})",
+                            player.getGameProfile().getName(),
+                            spot.getPosition(),
+                            level.dimension().location(),
+                            spot.getSpotId(),
+                            exception
+                    );
+                    continue;
+                }
+
+                if (result != null && result != RustlingSpotInteractionResult.PASS) {
+                    return result;
+                }
+            }
+
+            return RustlingSpotInteractionResult.PASS;
+        } finally {
+            clearCallbackInProgress(activeCallbacks, spot);
+        }
+    }
+
+    private static void clearCallbackInProgress(Set<RustlingSpot> activeCallbacks, RustlingSpot spot) {
+        activeCallbacks.remove(spot);
+        if (activeCallbacks.isEmpty()) {
+            CALLBACKS_IN_PROGRESS.remove();
+        }
+    }
+
+    private static boolean isCallbackInProgress(RustlingSpot spot) {
+        Set<RustlingSpot> activeCallbacks = CALLBACKS_IN_PROGRESS.get();
+        boolean inProgress = activeCallbacks.contains(spot);
+        if (activeCallbacks.isEmpty()) {
+            CALLBACKS_IN_PROGRESS.remove();
+        }
+        return inProgress;
     }
 }

@@ -93,7 +93,8 @@ public final class CustomSpotDefinitionRegistry {
     public static List<SpotSpawnTemplate> matching(Level level, net.minecraft.core.BlockPos groundPos, BlockState groundState) {
         List<SpotSpawnTemplate> matches = new ArrayList<>();
         for (CustomSpotDefinition definition : DEFINITIONS.values()) {
-            if (definition.matches(level, groundPos, groundState)) {
+            if (definition.spawnMode() == SpotSpawnMode.NATURAL
+                    && definition.matches(level, groundPos, groundState)) {
                 matches.add(definition.template());
             }
         }
@@ -101,7 +102,13 @@ public final class CustomSpotDefinitionRegistry {
     }
 
     public static List<String> idsForSuggestions() {
-        return DEFINITIONS.keySet().stream()
+        return naturalIdsForSuggestions();
+    }
+
+    public static List<String> naturalIdsForSuggestions() {
+        return DEFINITIONS.values().stream()
+                .filter(definition -> definition.spawnMode() == SpotSpawnMode.NATURAL)
+                .map(CustomSpotDefinition::id)
                 .map(ResourceLocation::toString)
                 .sorted()
                 .toList();
@@ -170,6 +177,12 @@ public final class CustomSpotDefinitionRegistry {
 
         RustlingSpotFamily visualFamily = optionalVisualFamily(id, root);
         List<WeightedParticleReference> particles = parseParticles(id, root.get("particles"));
+        SpotSpawnMode spawnMode = SpotSpawnMode.fromSerializedName(optionalString(root, "spawn_mode"));
+        if (spawnMode == null) {
+            warn(id.toString(), "Unknown spawn_mode; expected 'natural' or 'external_only'");
+            return Optional.empty();
+        }
+        ResourceLocation ambientSoundId = parseAmbientSound(id, optionalString(root, "ambient_sound"));
         SpotSpawnTemplate template = new SpotSpawnTemplate(
                 id,
                 visualFamily,
@@ -181,7 +194,19 @@ public final class CustomSpotDefinitionRegistry {
                 particles,
                 true
         );
-        return Optional.of(new CustomSpotDefinition(template, dimensions, blocks, biomes));
+        return Optional.of(new CustomSpotDefinition(template, dimensions, blocks, biomes, spawnMode, ambientSoundId));
+    }
+
+    private static ResourceLocation parseAmbientSound(ResourceLocation id, String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        ResourceLocation soundId = ResourceLocation.tryParse(raw);
+        if (soundId == null || BuiltInRegistries.SOUND_EVENT.getOptional(soundId).isEmpty()) {
+            warn(id.toString(), "Unknown ambient_sound '" + raw + "'; using the visual family's default sound");
+            return null;
+        }
+        return soundId;
     }
 
     private static RustlingSpotFamily optionalVisualFamily(ResourceLocation id, JsonObject root) {
