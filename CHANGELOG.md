@@ -14,6 +14,7 @@
 
 - Existing datapack definitions remain natural-spawn definitions by default and keep their current behavior.
 - Event spacing checks honor the largest spacing already recorded for that source, and retained spots cannot be interacted with while their chunks are unloaded.
+- Fabric metadata now targets Minecraft 1.21.1 exactly.
 
 # Rustling Spots v6.0
 

@@ -207,6 +207,7 @@ data/<namespace>/rustling_spots/spot_definitions/<nom>.json
   "format_version": 1,
   "id": "rustlingspots:swamp_custom",
   "display_name": "Swamp Spot",
+  "reward_origin_translation_key": "message.exampleaddon.reward_origin.swamp",
   "priority": 10,
   "weight": 5,
   "visual_family": "leaves",
@@ -245,6 +246,7 @@ data/<namespace>/rustling_spots/spot_definitions/<nom>.json
 | `format_version` | Oui | Version du format. Actuellement, seule la valeur `1` est acceptee. |
 | `id` | Oui | Identifiant complet du custom spot. |
 | `display_name` | Non | Nom lisible affiche dans les messages et commandes de debug. |
+| `reward_origin_translation_key` | Non | Clé de traduction de l'origine dans les messages de récompense Pokémon et loot. Sans valeur ou si vide, l'origine de la famille visuelle est utilisée. |
 | `visual_family` | Non | Famille visuelle utilisee pour le rendu et les particules de fallback. Si absent ou invalide, le spot garde le fallback historique `grass`. |
 | `spawn_mode` | Non | `natural` (defaut) ajoute la definition a la selection naturelle; `external_only` reserve sa creation aux addons. |
 | `ambient_sound` | Non | Identifiant d'un evenement sonore enregistre pour le son d'approche. Sans identifiant disponible, le son par defaut de la famille visuelle est utilise. |
@@ -289,6 +291,7 @@ Exemples valides :
 - `pokemon_family` doit exister, sinon la definition est ignoree
 - `loot_family` peut etre inconnue, mais dans ce cas le spot retombe sur le global loot
 - `display_name` est optionnel
+- `reward_origin_translation_key` est optionnel; fournissez sa traduction dans un fichier de langue client de l'addon ou dans un pack de ressources
 - `visual_family` est optionnel et accepte `grass`, `sand`, `water`, `underwater`, `snow`, `leaves`, `cave`, `geode`, `end`, `netherflamme`, `soulflame` ou `flying`
 - `dimensions` est optionnel
 - `particles` est optionnel
@@ -309,6 +312,16 @@ Utilisez `reward_chances` pour remplacer les probabilites par tentative d'appari
 ```
 
 Chaque champ peut etre omis pour conserver la valeur serveur actuelle. Les definitions sans cet objet gardent leur comportement de recompense existant.
+
+Utilisez `reward_origin_translation_key` pour nommer une origine propre à l'addon dans les messages de récompense, au lieu de reprendre la famille visuelle. Le fichier de langue client `assets/exampleaddon/lang/fr_fr.json` de l'addon peut définir la clé ainsi.
+
+```json
+{
+  "message.exampleaddon.reward_origin.swamp": "Le spot caché du marais"
+}
+```
+
+Sans ce champ, les messages existants conservent l'origine de la famille visuelle.
 
 ### Fallbacks importants
 

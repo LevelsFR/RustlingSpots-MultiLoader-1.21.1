@@ -2,35 +2,36 @@
 
 Temporary exploration encounters inspired by Pokémon Black and White rustling grass.
 
-Source and publication snapshot: **2026-10-21**. This guide describes the checked-out source; a download page can contain an earlier release.
+Source and publication snapshot: **2026-11-27**. This guide describes the checked-out source; a download page can contain an earlier release.
 
 ## Status and official links
 
-- [Source repository](https://github.com/LevelsFR/RustlingSpots-MultiLoader-1.21.1/tree/master) (public).
+- [Source repository](https://github.com/LevelsFR/RustlingSpots-MultiLoader-1.21.1/tree/levelsfr/v6.1-development) (public).
 - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/rustling-spots) — published project verified under LevelsFR.
 - [Modrinth](https://modrinth.com/mod/cobblemon-rustling-spots) — approved project in the LevelsFR profile.
 
 ## Features in the current source
 
-- Nine built-in spot families spanning grass, sand, water, snow, leaves, caves, flying and Nether themes.
+- 12 built-in spot families spanning grass, sand, water, underwater, snow, leaves, caves, flying, End, geode and the Nether's netherflamme and soulflamme themes.
 - Pokémon, themed loot, shiny rewards, optional empty outcomes and multiple rolls.
 - Server/player limits, announcements, preferences and active-spot resynchronization.
-- Datapack-defined spot families, eligibility rules, pools and particles.
+- Datapack-defined spots with eligibility rules, pools, particles, sounds and reward-origin translations.
+- Addon API for externally created spots, lifecycle events, event-specific spacing and reward controls.
 - Client/server Cloth Config integration and administrative diagnostics.
 
 ## Compatibility and dependencies
 
 | Component | Value |
 | --- | --- |
-| Source version | `5.0.1` |
+| Source version | `6.1` |
 | Minecraft baseline | `1.21.1` |
 | JDK | `21` |
-| Active branch | `master` |
+| Active branch | `levelsfr/v6.1-development` |
 
 | Loader | Dependency | Declared constraint | Requirement |
 | --- | --- | --- | --- |
 | Fabric | `fabricloader` | `>=0.18.4` | required |
-| Fabric | `minecraft` | `~1.21.1` | required |
+| Fabric | `minecraft` | `1.21.1` | required |
 | Fabric | `java` | `>=21` | required |
 | Fabric | `architectury` | `>=13.0.8` | required |
 | Fabric | `fabric-api` | `*` | required |

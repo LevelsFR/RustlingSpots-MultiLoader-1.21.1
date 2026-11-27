@@ -207,6 +207,7 @@ data/<namespace>/rustling_spots/spot_definitions/<name>.json
   "format_version": 1,
   "id": "rustlingspots:swamp_custom",
   "display_name": "Swamp Spot",
+  "reward_origin_translation_key": "message.exampleaddon.reward_origin.swamp",
   "priority": 10,
   "weight": 5,
   "visual_family": "leaves",
@@ -245,6 +246,7 @@ data/<namespace>/rustling_spots/spot_definitions/<name>.json
 | `format_version` | Yes | Format version. Currently only `1` is accepted. |
 | `id` | Yes | Full custom spot identifier. |
 | `display_name` | No | Readable name shown in messages and debug output. |
+| `reward_origin_translation_key` | No | Translation key for the spot's origin in Pokémon and loot reward messages. Missing or blank values use the visual family's origin. |
 | `visual_family` | No | Visual family used for rendering and fallback particles. If missing or invalid, the spot keeps the historical `grass` fallback. |
 | `spawn_mode` | No | `natural` (default) includes the definition in natural selection; `external_only` reserves it for addon-triggered creation. |
 | `ambient_sound` | No | Registered sound-event ID for the approach cue. Missing or unavailable IDs use the visual family's default sound. |
@@ -289,10 +291,13 @@ Valid examples:
 - `pokemon_family` must exist, otherwise the definition is ignored
 - `loot_family` may be unknown, but in that case the spot falls back to global loot
 - `display_name` is optional
+- `reward_origin_translation_key` is optional; provide its translation in an addon client language file or resource pack
 - `visual_family` is optional and accepts `grass`, `sand`, `water`, `underwater`, `snow`, `leaves`, `cave`, `geode`, `end`, `netherflamme`, `soulflame` or `flying`
 - `spawn_mode` is optional; omitted values keep the existing natural-spawn behavior
 - `ambient_sound` must refer to a sound event registered by Minecraft or a mod
 - `reward_chances` is optional; `pokemon` and `loot` values are independently optional and must be between `0.0` and `1.0`
+- `dimensions` is optional
+- `particles` is optional
 
 ### Natural and external-only modes
 
@@ -307,8 +312,16 @@ Use `reward_chances` to override per-roll Pokémon attempts and loot fallback ch
 ```
 
 Each field can be omitted to retain the current server default. Definitions without this object preserve their existing reward behavior.
-- `dimensions` is optional
-- `particles` is optional
+
+Set `reward_origin_translation_key` to an addon translation key when the reward message should name a custom origin instead of the visual family. The addon's client language file `assets/exampleaddon/lang/en_us.json` can define it like this.
+
+```json
+{
+  "message.exampleaddon.reward_origin.swamp": "The swamp's hidden spot"
+}
+```
+
+Definitions without the field keep their existing family-specific reward messages.
 
 ### Important fallbacks
 
