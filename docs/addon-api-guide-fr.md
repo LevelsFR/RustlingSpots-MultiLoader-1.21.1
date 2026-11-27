@@ -110,6 +110,7 @@ Le champ optionnel `spawn_mode` accepte `natural` ou `external_only`. En son abs
   "display_name": "Festival Rustle",
   "spawn_mode": "external_only",
   "visual_family": "leaves",
+  "reward_origin_translation_key": "message.exampleaddon.reward_origin.festival",
   "ambient_sound": "minecraft:block.amethyst_block.chime",
   "priority": 0,
   "weight": 1,
@@ -124,6 +125,16 @@ Le champ optionnel `spawn_mode` accepte `natural` ou `external_only`. En son abs
 ```
 
 `visual_family` sélectionne un renderer existant. `particles` réutilise le système existant de particules pondérées. `ambient_sound` est un identifiant facultatif d'événement sonore enregistré et disponible côté client et serveur; s'il est absent ou indisponible, le son existant de la famille visuelle est utilisé. Un addon qui ajoute un son doit enregistrer son événement et fournir ses ressources sonores côté client.
+
+`reward_origin_translation_key` est une chaîne facultative qui remplace l'origine dans les messages de récompense Pokémon et butin, pour une ou plusieurs récompenses. Si le champ est absent ou vide, les messages utilisent la famille visuelle comme auparavant. La clé est accessible via `CustomSpotDefinition.rewardOriginTranslationKey()` et `RustlingSpot.getRewardOriginTranslationKey()`.
+
+Fournissez cette clé dans les fichiers de langue client de l'addon ou d'un pack de ressources, par exemple dans `assets/exampleaddon/lang/fr_fr.json`. La valeur est le nom de l'origine avec son article si nécessaire. Les phrases existantes peuvent la placer en début ou au milieu de phrase.
+
+```json
+{
+  "message.exampleaddon.reward_origin.festival": "Le spot du festival"
+}
+```
 
 Voir le [datapack d'exemple external-only](../example_datapacks/external_only_spot_pack) et le [guide des définitions personnalisées](./custom-spot-definitions-guide.md).
 

@@ -21,7 +21,8 @@ public record SpotSpawnTemplate(
         int priority,
         int weight,
         List<WeightedParticleReference> particles,
-        boolean custom
+        boolean custom,
+        String rewardOriginTranslationKey
 ) {
     public SpotSpawnTemplate {
         if (spotId == null) {
@@ -36,10 +37,18 @@ public record SpotSpawnTemplate(
         pokemonFamily = pokemonFamily.trim();
         lootFamily = lootFamily != null && !lootFamily.isBlank() ? lootFamily.trim() : null;
         displayName = displayName != null && !displayName.isBlank() ? displayName.trim() : null;
+        rewardOriginTranslationKey = custom && rewardOriginTranslationKey != null && !rewardOriginTranslationKey.isBlank()
+                ? rewardOriginTranslationKey.strip() : null;
         if (weight <= 0) {
             throw new IllegalArgumentException("weight must be positive");
         }
         particles = particles == null ? List.of() : List.copyOf(particles);
+    }
+
+    public SpotSpawnTemplate(ResourceLocation spotId, RustlingSpotFamily visualFamily, String pokemonFamily,
+                             String lootFamily, String displayName, int priority, int weight,
+                             List<WeightedParticleReference> particles, boolean custom) {
+        this(spotId, visualFamily, pokemonFamily, lootFamily, displayName, priority, weight, particles, custom, null);
     }
 
     public static SpotSpawnTemplate builtIn(RustlingSpotFamily family) {
@@ -98,7 +107,8 @@ public record SpotSpawnTemplate(
                 external,
                 sameSourceSpacingBlocks,
                 despawnWhenNoPlayers,
-                rewardChances
+                rewardChances,
+                rewardOriginTranslationKey
         );
     }
 }

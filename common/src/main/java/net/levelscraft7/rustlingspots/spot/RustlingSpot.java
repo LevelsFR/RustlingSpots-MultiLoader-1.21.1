@@ -35,6 +35,7 @@ public final class RustlingSpot {
     private final double sameSourceSpacingBlocks;
     private final boolean despawnWhenNoPlayers;
     private final RustlingSpotRewardChances rewardChances;
+    private final String rewardOriginTranslationKey;
     private final AtomicBoolean interactionClaimed = new AtomicBoolean();
 
     public RustlingSpot(
@@ -101,6 +102,34 @@ public final class RustlingSpot {
             boolean despawnWhenNoPlayers,
             RustlingSpotRewardChances rewardChances
     ) {
+        this(id, dimension, position, family, pokemonFamily, lootFamily, spotId, customDisplayName, particles,
+                createdTick, ambientVariant, shiny, custom, ambientSoundId, lifetimeTicks, sourceId,
+                external, sameSourceSpacingBlocks, despawnWhenNoPlayers, rewardChances, null);
+    }
+
+    RustlingSpot(
+            UUID id,
+            ResourceKey<Level> dimension,
+            BlockPos position,
+            RustlingSpotFamily family,
+            String pokemonFamily,
+            String lootFamily,
+            ResourceLocation spotId,
+            String customDisplayName,
+            List<WeightedParticleReference> particles,
+            long createdTick,
+            int ambientVariant,
+            boolean shiny,
+            boolean custom,
+            ResourceLocation ambientSoundId,
+            int lifetimeTicks,
+            ResourceLocation sourceId,
+            boolean external,
+            double sameSourceSpacingBlocks,
+            boolean despawnWhenNoPlayers,
+            RustlingSpotRewardChances rewardChances,
+            String rewardOriginTranslationKey
+    ) {
         this.id = java.util.Objects.requireNonNull(id, "id");
         this.dimension = java.util.Objects.requireNonNull(dimension, "dimension");
         this.position = java.util.Objects.requireNonNull(position, "position").immutable();
@@ -121,6 +150,7 @@ public final class RustlingSpot {
         this.sameSourceSpacingBlocks = sameSourceSpacingBlocks;
         this.despawnWhenNoPlayers = despawnWhenNoPlayers;
         this.rewardChances = rewardChances;
+        this.rewardOriginTranslationKey = rewardOriginTranslationKey;
     }
 
     public UUID getId() {
@@ -198,6 +228,10 @@ public final class RustlingSpot {
 
     public Optional<RustlingSpotRewardChances> getRewardChances() {
         return Optional.ofNullable(rewardChances);
+    }
+
+    public Optional<String> getRewardOriginTranslationKey() {
+        return Optional.ofNullable(rewardOriginTranslationKey);
     }
 
     public boolean tryClaimInteraction() {

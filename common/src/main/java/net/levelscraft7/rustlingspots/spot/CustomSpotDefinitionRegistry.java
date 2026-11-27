@@ -189,6 +189,7 @@ public final class CustomSpotDefinitionRegistry {
         }
         ResourceLocation ambientSoundId = parseAmbientSound(id, optionalString(root, "ambient_sound"));
         RustlingSpotRewardChances rewardChances = parseRewardChances(id, root.get("reward_chances"));
+        String rewardOriginTranslationKey = parseRewardOriginTranslationKey(id, root.get("reward_origin_translation_key"));
         SpotSpawnTemplate template = new SpotSpawnTemplate(
                 id,
                 visualFamily,
@@ -198,10 +199,22 @@ public final class CustomSpotDefinitionRegistry {
                 priority,
                 weight,
                 particles,
-                true
+                true,
+                rewardOriginTranslationKey
         );
         return Optional.of(new CustomSpotDefinition(template, dimensions, blocks, biomes, spawnMode,
                 ambientSoundId, rewardChances));
+    }
+
+    private static String parseRewardOriginTranslationKey(ResourceLocation id, JsonElement element) {
+        if (element == null || element.isJsonNull()) {
+            return null;
+        }
+        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
+            warn(id.toString(), "reward_origin_translation_key must be a string; using the visual family's reward origin");
+            return null;
+        }
+        return element.getAsString();
     }
 
     private static RustlingSpotRewardChances parseRewardChances(ResourceLocation id, JsonElement element) {

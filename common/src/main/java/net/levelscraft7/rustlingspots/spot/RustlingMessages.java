@@ -75,7 +75,9 @@ public final class RustlingMessages {
         if (spot == null || spot.getFamily() == null) {
             return Component.translatable(ORIGIN_KEY_PREFIX + "generic");
         }
-        return Component.translatable(ORIGIN_KEY_PREFIX + spot.getFamily().serializedName());
+        String key = spot.getRewardOriginTranslationKey()
+                .orElseGet(() -> ORIGIN_KEY_PREFIX + spot.getFamily().serializedName());
+        return Component.translatable(key);
     }
 
     private static String pickRandom(List<String> templates, RandomSource random) {

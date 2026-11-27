@@ -97,6 +97,10 @@ public final class CustomSpotDefinition {
         return Optional.ofNullable(rewardChances);
     }
 
+    public Optional<String> rewardOriginTranslationKey() {
+        return Optional.ofNullable(template.rewardOriginTranslationKey());
+    }
+
     public boolean matches(Level level, BlockPos groundPos, BlockState groundState) {
         if (!dimensions.contains(level.dimension())) {
             return false;
